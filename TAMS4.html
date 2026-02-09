@@ -444,6 +444,245 @@ input:focus {
     grid-template-columns: repeat(4, 1fr);
 }
 
+/* --- UNDERTAKING FORM STYLES --- */
+.undertaking-paper {
+  background: white;
+  width: 210mm; /* A4 Width */
+  min-height: 297mm;
+  padding: 10mm;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  color: #000;
+  font-family: 'Times New Roman', serif;
+}
+.ut-header { text-align: center; border-bottom: 2px solid #000; margin-bottom: 10px; padding-bottom: 5px; }
+.ut-header h2, .ut-header h3 { margin: 2px 0; text-transform: uppercase; }
+.ut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.ut-box { border: 1px solid #000; padding: 5px; }
+.ut-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dotted #ccc; }
+.ut-label { font-weight: bold; font-size: 12px; }
+.ut-val { font-weight: normal; font-size: 13px; }
+.checklist-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #000; margin-top: 10px; }
+.cl-header { font-weight: bold; border-bottom: 1px solid #000; padding: 5px; background: #eee; text-align: center; }
+.cl-item { border-bottom: 1px solid #ccc; padding: 2px 5px; font-size: 11px; display: flex; justify-content: space-between; }
+.ut-section-title { background: #000; color: #fff; padding: 2px 5px; font-weight: bold; margin-top: 10px; font-size: 12px; }
+.ut-footer-row { display: flex; justify-content: space-between; margin-top: 30px; }
+.ut-sig-box { width: 45%; border-top: 1px solid #000; padding-top: 5px; text-align: center; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  body * { visibility: hidden; }
+  #undertaking, #undertaking * { visibility: visible; }
+  #undertaking { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+  .undertaking-paper { box-shadow: none; width: 100%; margin: 0; padding: 10mm; }
+  .no-print { display: none !important; }
+}
+/* --- Editable Text Areas for Print --- */
+.writable-input {
+  width: 100%;
+  border: 1px dashed #ccc; /* Dashed border on screen to show where to type */
+  background: rgba(255, 255, 255, 0.5);
+  font-family: 'Times New Roman', serif; /* Match form font */
+  font-size: 12px;
+  resize: none; /* Disable resizing */
+  outline: none;
+  padding: 5px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media print {
+  .writable-input {
+    border: none; /* Hide the dashed border when printing */
+    background: transparent;
+    padding: 0;
+  }
+  /* Ensure placeholders don't print (browsers usually hide them, but just in case) */
+  .writable-input::placeholder {
+    color: transparent;
+  }
+}
+/* Apply uniform sizing ONLY to the Asset Modal fields */
+#assetModal input, 
+#assetModal select, 
+#assetModal textarea, 
+#assetModal .search-dd .selected {
+  width: 100% !important;
+  height: 40px !important; /* Forces all boxes to the same height */
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  background-color: white;
+}
+
+/* Specific handling for the remarks box so it starts at the same height */
+#assetModal textarea {
+  min-height: 40px;
+  max-height: 120px; /* Allows it to grow if they type a lot */
+  resize: vertical;
+  line-height: 1.4;
+}
+
+/* Ensures labels don't push the boxes out of alignment */
+#assetModal label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+/* Special alignment for the search dropdown text to match standard inputs */
+#assetModal .search-dd .selected {
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Update the Log Modal to be wider for tables */
+#logsModal .dialog {
+  max-width: 1100px; /* Increased from default */
+  width: 95%;
+}
+
+/* Scrollable table within logs */
+#logsTimeline {
+  max-height: 60vh;
+  overflow: auto;
+}
+
+#logsTimeline table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#logsTimeline th, #logsTimeline td {
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  text-align: left;
+}
+
+#logsTimeline th {
+  background: #eff6ff;
+  position: sticky;
+  top: 0;
+}
+/* Watermark Styling */
+.undertaking-paper {
+  position: relative;
+  background-color: #white;
+}
+
+.undertaking-paper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Replace 'NPClogo.png' with your watermark file */
+  background-image: url('NPClogo.png'); 
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 500px; /* Adjust size of watermark here */
+  opacity: 0.12; /* Controls how faint the watermark is (0.1 is 10%) */
+  pointer-events: none; /* Ensures you can still click/select text */
+  z-index: 0;
+}
+
+/* Ensure the content stays above the watermark */
+.ut-header, .ut-body, .ut-footer, table {
+  position: relative;
+  z-index: 1;
+}
+/* --- NEW: Dropdown Menu in Sidebar --- */
+.nav-item { position: relative; display: flex; align-items: center; height: 100%; }
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 60px; /* Below the navbar */
+  left: 0;
+  background-color: #0A2A6A; /* Match Sidebar */
+  min-width: 220px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  z-index: 2000;
+  border-radius: 0 0 8px 8px;
+}
+.dropdown-content a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.dropdown-content a:hover { background-color: rgba(255,255,255,0.1); }
+.nav-item:hover .dropdown-content { display: block; }
+
+/* --- NEW: Compact Dashboard Layout (Fit Screen) --- */
+.dash-container {
+  height: calc(100vh - 140px); /* Adjust based on header/padding */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+/* Summary Cards Row (Top) */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  height: 15%; /* Takes top 15% of screen */
+  min-height: 90px;
+}
+.kpi-card {
+  background: white; border-radius: 8px; padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.kpi-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+.kpi-value { font-size: 24px; font-weight: 800; color: #0f172a; }
+.kpi-sub   { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+/* status colors bars on left of card */
+.kpi-card.c-blue { border-left: 4px solid #3b82f6; }
+.kpi-card.c-green { border-left: 4px solid #22c55e; }
+.kpi-card.c-orange { border-left: 4px solid #f59e0b; }
+.kpi-card.c-red { border-left: 4px solid #ef4444; }
+
+/* Charts Grid (Bottom) */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  height: 85%; /* Takes remaining height */
+}
+.chart-box {
+  background: white; border-radius: 8px; padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.chart-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.chart-title { font-size: 13px; font-weight: 700; color: #334155; }
+.expand-btn { background: none; border: none; cursor: pointer; font-size: 14px; }
+
+.chart-container { flex: 1; position: relative; width: 100%; height: 100%; }
+
+/* Modal for Expanded Chart */
+#chartModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; align-items: center; justify-content: center; }
+#chartModalContent { background: white; width: 90%; height: 80%; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; }
 
 
 
@@ -491,15 +730,24 @@ input:focus {
   <img src="TAMS_logo.png" style="height:70px; vertical-align:middle; margin-right:15px;">
 </div>
 
-    <nav class="nav">
-      <a href="#" id="nav-dashboard" class="active" onclick="nav('dashboard')">Dashboard</a>
-<a href="#" id="nav-assets" onclick="nav('assets')">Asset Management</a>
-      <a href="#" id="nav-list" onclick="nav('list')">Drivers/Operators List</a>
-<a href="#" id="nav-al6m" onclick="nav('al6m')">Drivers/Operators Overstay </a>
-<a href="#" id="nav-undertaking" onclick="nav('undertaking')">Undertaking</a>
-<a href="#" id="nav-projectsSection" onclick="nav('projectsSection')">Projects</a>
-      <a href="#" id="nav-users" onclick="nav('users')">Manage Users</a>
-    </nav>
+<nav class="nav">
+  <a href="#" id="nav-dashboard" class="active" onclick="nav('dashboard')">Dashboard</a>
+  <a href="#" id="nav-assets" onclick="nav('assets')">Asset Management</a>
+  <a href="#" id="nav-list" onclick="nav('list')">Drivers/Operators List</a>
+  <a href="#" id="nav-al6m" onclick="nav('al6m')">Drivers/Operators Overstay</a>
+  
+  <div class="nav-item">
+    <a href="#" id="nav-reports" onclick="void(0)">Reports ▾</a>
+    <div class="dropdown-content">
+      <a href="#" onclick="nav('reportRegExp')">1. Registration Expiry</a>
+      <a href="#" onclick="nav('reportLicExp')">2. License Expiry (Soon)</a>
+    </div>
+  </div>
+
+  <a href="#" id="nav-undertaking" onclick="nav('undertaking')">Undertaking</a>
+  <a href="#" id="nav-projectsSection" onclick="nav('projectsSection')">Projects</a>
+  <a href="#" id="nav-users" onclick="nav('users')">Manage Users</a>
+</nav>
   </aside>
 
   <!-- MAIN -->
@@ -514,43 +762,71 @@ input:focus {
 
 <!-- DASHBOARD -->
 <section id="dashboard" class="section">
-  <h2>Dashboard</h2>
+  <div class="dash-container">
+    
+    <div class="summary-row">
+      <div class="kpi-card c-blue">
+        <div class="kpi-title">Assets Status</div>
+        <div class="kpi-value" id="kpi_asset_total">0</div>
+        <div class="kpi-sub" id="kpi_asset_sub">Op: 0 | Idle: 0</div>
+      </div>
+      <div class="kpi-card c-green">
+        <div class="kpi-title">Operator/Driver Status</div>
+        <div class="kpi-value" id="kpi_driver_total">0</div>
+        <div class="kpi-sub" id="kpi_driver_sub">Active: 0 | Leave: 0</div>
+      </div>
+      <div class="kpi-card c-orange">
+        <div class="kpi-title">Registration Status</div>
+        <div class="kpi-value" id="kpi_reg_total">0</div>
+        <div class="kpi-sub" id="kpi_reg_sub">Valid: 0 | Exp: 0</div>
+      </div>
+      <div class="kpi-card c-red">
+        <div class="kpi-title">License Status (Drivers)</div>
+        <div class="kpi-value" id="kpi_lic_total">N/A</div>
+        <div class="kpi-sub" id="kpi_lic_sub">Feature coming soon</div>
+      </div>
+    </div>
 
-  <!-- Summary Cards -->
-<div class="dashboard-cards">
-  <div class="card drivers">
-    <h3>🚗 Total Drivers</h3>
-    <p id="totalDrivers">0</p>
-    <small id="activeDrivers"></small>
+    <div class="charts-grid">
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Project-wise Assets</span> <button class="expand-btn" onclick="expandChart('projectAssetChart')">⤢</button></div>
+        <div class="chart-container"><canvas id="projectAssetChart"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Asset Status</span></div>
+        <div class="chart-container"><canvas id="assetStatusChart"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Operator/Driver Status</span></div>
+        <div class="chart-container"><canvas id="opStatusChart"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Asset Category</span></div>
+        <div class="chart-container"><canvas id="assetCatChart"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Projects Status</span></div>
+        <div class="chart-container"><canvas id="projStatusChart"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-header"><span class="chart-title">Project Division</span></div>
+        <div class="chart-container"><canvas id="projDivChart"></canvas></div>
+      </div>
+    </div>
   </div>
-  <div class="card operators">
-    <h3>🛠️ Total Operators</h3>
-    <p id="totalOperators">0</p>
-    <small id="activeOperators"></small>
-  </div>
-  <div class="card leave">
-    <h3>🌴 On Leave</h3>
-    <p id="onLeave">0</p>
-  </div>
-  <div class="card resigned">
-    <h3>❌ Resigned</h3>
-    <p id="resigned">0</p>
-  </div>
-</div>
-
-
-  <!-- Charts -->
-  <div class="grid grid-2">
-    <div class="card"><canvas id="driverChart" height="100"></canvas></div>
-    <div class="card"><canvas id="operatorChart" height="100"></canvas></div>
-  </div>
-  <div class="grid" style="margin-top:16px">
-    <div class="card"><canvas id="projectChart" height="140"></canvas></div>
-  </div>
-<div class="grid" style="margin-top:16px">
-  <div class="card"><canvas id="leaveChart" height="140"></canvas></div>
-</div>
 </section>
+
+<div id="chartModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:5000; align-items:center; justify-content:center;">
+  <div style="background:white; width:90%; height:80%; padding:20px; border-radius:12px; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+      <h3 id="expandedChartTitle">Detailed View</h3>
+      <button class="btn warn" onclick="document.getElementById('chartModal').style.display='none'">Close</button>
+    </div>
+    <div style="flex:1; position:relative;">
+      <canvas id="expandedCanvas"></canvas>
+    </div>
+  </div>
+</div>
 
     <!-- Asset Management -->
 
@@ -604,74 +880,120 @@ input:focus {
     </table>
   </div>
 </section>
+
+
+
 <div id="assetModal" class="modal-overlay">
   <div class="modal-content card">
-    <h3>Add New Asset</h3>
+    <h3>Asset Details</h3>
     <div class="grid grid-4">
-      <input id="a_vmNo" placeholder="Vehicle/Machine No" />
-      <input id="a_assetNo" placeholder="Asset No" />
-      <select id="a_category">
-        <option value="">Category</option>
-        <option>Vehicle</option><option>Machine</option><option>Gensets</option><option>Minor</option>
-      </select>
-<div class="search-dd" id="a_userDD">
-  <div class="selected">Select User (ID - Name)</div>
-  <div class="panel">
-    <input placeholder="Search user..." oninput="filterDD(this)">
-    <div class="list"></div>
-  </div>
-</div>
+      <div>
+        <label>Vehicle/Machine No</label>
+        <input id="a_vmNo" />
+      </div>
+      <div>
+        <label>Asset No</label>
+        <input id="a_assetNo" />
+      </div>
+      <div>
+        <label>Category</label>
+        <select id="a_category">
+          <option value="">Select Category</option>
+          <option>Vehicle</option><option>Machine</option><option>Gensets</option><option>Minor</option>
+        </select>
+      </div>
+      <div>
+        <label>Assign User</label>
+        <div class="search-dd" id="a_userDD">
+          <div class="selected">Select User (ID - Name)</div>
+          <div class="panel">
+            <input placeholder="Search user..." oninput="filterDD(this)">
+            <div class="list"></div>
+          </div>
+        </div>
+      </div>
 
-      <input id="a_designation" placeholder="Designation (Auto)" readonly />
-      <input id="a_contact" placeholder="Contact (Auto)" readonly />
-      <div class="search-dd" id="a_projectDD">
-  <div class="selected">Select Project</div>
-  <div class="panel">
-    <input placeholder="Search project..." oninput="filterDD(this)">
-    <div class="list"></div>
-  </div>
-</div>
+      <div>
+        <label>Designation</label>
+        <input id="a_designation" readonly />
+      </div>
+      <div>
+        <label>Contact</label>
+        <input id="a_contact" readonly />
+      </div>
+      <div>
+        <label>Project</label>
+        <div class="search-dd" id="a_projectDD">
+          <div class="selected">Select Project</div>
+          <div class="panel">
+            <input placeholder="Search project..." oninput="filterDD(this)">
+            <div class="list"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label>Registration No</label>
+        <input id="a_regNo" />
+      </div>
 
-      <input id="a_regNo" placeholder="Registration No" />
-<input id="a_regExp" type="text" placeholder="📅 Reg Expiry" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" />
-<input 
-  id="a_from" 
-  type="text" 
-  placeholder="📅 From Date/Time" 
-  onfocus="(this.type='datetime-local')" 
-  oninput="this.blur()" 
-  onblur="if(!this.value) this.type='text'" 
-/>
+      <div>
+        <label>Reg Expiry</label>
+        <input id="a_regExp" type="text" placeholder="📅 Select Date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" />
+      </div>
+      <div>
+        <label>From Date/Time</label>
+        <input id="a_from" type="text" placeholder="📅 Select Date/Time" onfocus="(this.type='datetime-local')" oninput="this.blur()" onblur="if(!this.value) this.type='text'" />
+      </div>
+      <div>
+        <label>Till Date/Time</label>
+        <input id="a_till" type="text" placeholder="📅 Select Date/Time" onfocus="(this.type='datetime-local')" oninput="this.blur()" onblur="if(!this.value) this.type='text'" />
+      </div>
+      <div>
+        <label>Status</label>
+<select id="a_status" onchange="handleAssetStatusChange()">
+          <option value="">Select Status</option>
+          <option>In operation</option><option>IDLE</option><option>Maintenance</option>
+          <option>Scrap</option><option>Passing Work</option><option>To be Sold</option><option>Sold</option>
+        </select>
+      </div>
+      <div>
+        <label>Shift</label>
+        <select id="a_shift">
+          <option value="">Select Shift</option>
+          <option>Day</option><option>Night</option>
+        </select>
+      </div>
+      <div style="grid-column: span 3;">
+        <label>Remarks</label>
+        <textarea id="a_remarks" style="height: 42px;"></textarea>
+      </div>
 
-<input 
-  id="a_till" 
-  type="text" 
-  placeholder="📅 Till Date/Time" 
-  onfocus="(this.type='datetime-local')" 
-  oninput="this.blur()" 
-  onblur="if(!this.value) this.type='text'" 
-/>
-<select id="a_status">
-        <option value="">Select Status</option>
-        <option>In operation</option>
-        <option>IDLE</option>
-        <option>Maintenance</option>
-        <option>Scrap</option>
-<option>Passing Work</option>
-<option>To be Sold</option>
-<option>Sold</option>
-      </select>
-<select id="a_shift">
-        <option value="">Select Shift</option>
-        <option>Day</option>
-        <option>Night</option>
-      </select>
-      <textarea id="a_remarks" placeholder="Remarks"></textarea>
+      <div style="grid-column: span 4; background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #bfdbfe;">
+        <label style="font-size:12px;">Update Driver Status (If User Assigned)</label>
+        <div class="grid grid-2" style="gap:10px;">
+          <div>
+            <label style="font-size:11px; color:#64748b;">Action</label>
+            <select id="a_driverStatus">
+              <option value="Active">Keep Driver Active</option>
+<option value="IDLE">Set Driver: IDLE</option>
+              <option value="On Leave">Set Driver: On Leave</option>
+              <option value="Resigned">Set Driver: Resigned</option>
+              <option value="Transfer">Set Driver: Transfer</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px; color:#64748b;">Leave Till Date</label>
+            <input id="a_driverLeaveTill" type="text" placeholder="📅 Manual: Leave Till" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'" />
+          </div>
+        </div>
+        <small style="color:#64748b; display:block; margin-top:8px;">
+          * Selecting "On Leave" or "Resigned" uses the Asset "Till Date" as the event start date.
+        </small>
+      </div>
     </div>
     <div style="margin-top:20px; text-align:right;">
       <button class="btn warn" onclick="closeAssetModal()">Cancel</button>
       <button class="btn" onclick="saveOrUpdateAsset()">Save Asset</button>
-
     </div>
   </div>
 </div>
@@ -935,7 +1257,37 @@ input:focus {
   </div>
 </section>
 
+<!-- Report -->
+<section id="reportRegExp" class="section" style="display:none">
+  <h2>Registration Expiry Report</h2>
+  <div class="toolbar card" style="background:#fee2e2; border-color:#fca5a5;">
+    <p style="margin:0; font-weight:bold; color:#b91c1c;">
+      ⚠️ Displaying Assets with Expired Registration or Expiring within 15 Days.
+    </p>
+    <button class="btn" style="margin-left:auto;" onclick="exportRegReport()">Export Excel</button>
+  </div>
+  <div class="table-wrap">
+    <table id="regReportTable">
+      <thead>
+        <tr>
+          <th>Vehicle/Machine No</th>
+          <th>Asset No</th>
+          <th>Project</th>
+          <th>Reg No</th>
+          <th>Reg Expiry</th>
+          <th>Days Remaining</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="regReportBody"></tbody>
+    </table>
+  </div>
+</section>
 
+<section id="reportLicExp" class="section" style="display:none">
+    <h2>License Expiry Report</h2>
+    <div class="card"><p>Feature coming soon...</p></div>
+</section>
 
     <!-- USERS -->
     <section id="users" class="section" style="display:none">
@@ -1018,6 +1370,128 @@ input:focus {
 </div>
 
 
+
+<section id="undertaking" class="section" style="display:none">
+  <div class="no-print" style="padding: 20px; text-align:right;">
+    <button class="btn" onclick="window.print()">🖨️ Print Undertaking</button>
+  </div>
+
+  <div class="undertaking-paper">
+<div class="ut-header">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <img src="NPClogo.png" style="height: 80px; width: auto; object-fit: contain;" alt="Logo Left">
+    
+    <img src="UndertakingMiddle.jpg" style="height: 60px; width: auto; object-fit: contain;" alt="Logo Middle">
+    
+    <img src="UndertakingRight.png" style="height: 60px; width: auto; object-fit: contain;" alt="Logo Right">
+  </div>
+
+  <div style="text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
+    <h2 style="margin: 0; font-size: 22px; letter-spacing: 1px;">PLANT DEPARTMENT</h2>
+    <h3 style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold;">UNDERTAKING (RECEIVING) OF NPC OWNED VEHICLES</h3>
+  </div>
+</div>
+
+    <div class="ut-grid">
+      <div class="ut-box">
+        <div class="ut-section-title">RECEIVING PERSON DETAILS / وصول کرنے والے شخص کی تفصیلات</div>
+        <div class="ut-row"><span class="ut-label">NAME / نام:</span> <span class="ut-val" id="ut_name"></span></div>
+        <div class="ut-row"><span class="ut-label">EMP. NO / ملازم کا نمبر:</span> <span class="ut-val" id="ut_empId"></span></div>
+        <div class="ut-row"><span class="ut-label">DESIGNATION / عہدہ:</span> <span class="ut-val" id="ut_desig"></span></div>
+        <div class="ut-row"><span class="ut-label">PROJECT / پروجیکٹ:</span> <span class="ut-val" id="ut_proj"></span></div>
+        <div class="ut-row"><span class="ut-label">LICENSE / لائسنس:</span> <span class="ut-val" id="ut_license"></span></div>
+        <div class="ut-row"><span class="ut-label">CONTACT / نمبر:</span> <span class="ut-val" id="ut_contact"></span></div>
+      </div>
+
+      <div class="ut-box">
+        <div class="ut-section-title">VEHICLE DETAILS / گاڑی کی تفصیلات</div>
+        <div class="ut-row"><span class="ut-label">MAKE & MODEL / ماڈل:</span> <span class="ut-val" id="ut_model"></span></div>
+        <div class="ut-row"><span class="ut-label">PLATE NO / پلیٹ نمبر:</span> <span class="ut-val" id="ut_plate"></span></div>
+        <div class="ut-row"><span class="ut-label">ASSET NO / اثاثہ نمبر:</span> <span class="ut-val" id="ut_asset"></span></div>
+        <div class="ut-row"><span class="ut-label">REG. VALIDITY / رجسٹریشن:</span> <span class="ut-val" id="ut_reg"></span></div>
+        <div class="ut-row"><span class="ut-label">INSURANCE / انشورنس:</span> <span class="ut-val" id="ut_ins"></span></div>
+        <div class="ut-row"><span class="ut-label">K.M. READING / کلومیٹر:</span> <span class="ut-val" id="ut_km"></span></div>
+      </div>
+    </div>
+
+    <div class="checklist-grid">
+      <div>
+        <div class="cl-header">CHECKLIST (RECEIVE / RETURN)</div>
+        <div class="cl-item"><span>FIRST AID BOX / طبی امداد کا ڈبہ</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>WIPER / WASHER / وائپر</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>RADIO / CD / ریڈیو</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>TOOL KIT / ٹول کٹ</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>JACK / جیک</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>SPARE WHEEL / اسپیئر وہیل</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>MIRRORS / آئینہ</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>A/C CONTROL / ایئر کنڈیشنگ</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>PETROL CARD NO. /پیٹرول</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>SALIK TAG / سالک </span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>FLOOR MATS / فرش</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>WHEEL CAPS / وہیل کیپ	</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>FIRE EXTINGUISHER /اگ بجھانے کا الہ</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+        <div class="cl-item"><span>LIGHTS / INDICATORS  /روشنی / اشارے</span> <span><input type="checkbox"> OK / <input type="checkbox"> NO</span></div>
+      </div>
+      <div>
+  <div class="cl-header">TRAFFIC FINE DETAILS & NOTES</div>
+  <div style="padding:10px; font-size:11px; height:100%; box-sizing:border-box;">
+    <p style="margin:0 0 5px 0;"><strong>OFFENCE DATE / FINE REF:</strong></p>
+    
+    <textarea id="ut_fines" class="writable-input" rows="6" 
+      placeholder="Type fine details here..."></textarea>
+      
+    <p style="margin-top:10px; font-style:italic; font-size:10px;">
+      "Note: All Traffic fines has to be paid by the individual user, if not equal amount shall be deducted from their salary."
+    </p>
+  </div>
+</div>
+    </div>
+
+    <div style="margin-top:15px; font-size:12px; font-weight:bold;">
+      RECEIVED THE ABOVE VEHICLE IN GOOD CONDITION. I UNDERTAKE RESPONSIBILITY OF THE VEHICLE.
+    </div>
+
+    <div class="ut-footer-row">
+      <div class="ut-sig-box">
+        <div>SIGNATURE / دستخط</div>
+        <br><br>
+        <div>_______________________</div>
+        <div style="margin-top:5px;" id="ut_date_receive">Date: </div>
+      </div>
+<div class="ut-sig-box" style="border:none; text-align:left; width: 45%;">
+  <div><strong>REMARKS:</strong></div>
+  
+  <textarea id="ut_remarks" class="writable-input" rows="3" 
+    style="border-bottom: 1px solid #000; margin-top: 5px;" 
+    placeholder="Type remarks here..."></textarea>
+</div>
+    </div>
+
+    <div class="ut-section-title" style="margin-top:30px;">VEHICLE RETURN DETAILS / گاڑی کی واپسی کی تفصیلات</div>
+    <div class="ut-grid" style="margin-top:10px;">
+      <div class="ut-box">
+        <div><strong>RECEIVED BY / کی طرف سے موصول:</strong></div>
+        <div style="height:30px;"></div>
+        <div>SIGNATURE: _________________</div>
+      </div>
+      <div class="ut-box">
+        <div><strong>RETURNED BY / کی طرف سے واپس:</strong></div>
+        <div style="font-size:14px; font-weight:bold; margin:5px 0;" id="ut_return_by"></div>
+
+        <div>SIGNATURE: _________________</div>
+        <div style="margin-top:5px;" id="ut_date_return">Date: </div>
+      </div>
+    </div>
+
+    <div style="margin-top:40px; border-top:1px solid #000; display:flex; justify-content:space-between; padding-top:5px; font-size:11px;">
+      <span>TRANSPORT CO-ORDINATOR</span>
+      <span>PLANT MANAGER</span>
+    </div>
+    <div style="text-align:right; font-size:10px; margin-top:10px;">FORM: NPC/QHSE/FRM/253 R2</div>
+
+  </div>
+</section>
+
 <!-- Change Password Modal -->
 <div id="pwModal" class="modal">
   <div class="dialog">
@@ -1033,13 +1507,13 @@ input:focus {
 </div>
 
 <!-- Driver Logs Modal -->
-<div id="logsModal" class="modal">
-  <div class="dialog">
+<div id="logsModal" class="modal"> <div class="dialog">
     <h3>Driver Logs</h3>
-    <div id="logsTimeline" style="max-height:400px;overflow:auto;"></div>
+    <div id="logsTimeline">
+      </div>
     <div class="actions">
-	<button class="btn secondary" onclick="exportLogsPDF()">📑 Export PDF</button>
-      <button class="btn warn" onclick="closeLogs()">Close</button>
+      <button class="btn secondary" onclick="exportLogsToPDF()">📑 Export PDF</button>
+      <button class="btn warn" onclick="document.getElementById('logsModal').style.display='none'">Close</button>
     </div>
   </div>
 </div>
@@ -1254,6 +1728,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* --------------------------------- NAV --------------------------------- */
+/* --------------------------------- NAV --------------------------------- */
 function nav(id){
   // 1. Hide all sections first
   $$('.section').forEach(s => s.style.display = 'none');
@@ -1280,76 +1755,81 @@ function nav(id){
     applyFilters();
   }
   if(id === 'projectsSection'){
-    loadProjects(); // Ensure this function exists
-    applyProjFilters(); // Ensure this function exists
+    loadProjects(); 
+    applyProjFilters(); 
   }
   if(id === 'users') renderUsers();
   if(id === 'al6m') renderAL6M();
+  
+  // FIXED: Check if element exists before setting textContent to avoid crash
   if(id === 'undertaking') {
-    document.getElementById("undertakingDate").textContent = new Date().toLocaleDateString();
+    const dateEl = document.getElementById("undertakingDate");
+    if(dateEl) {
+        dateEl.textContent = new Date().toLocaleDateString();
+    }
   }
 }
 window.nav = nav;
 /* -------------------------------- Undertaking -------------------------------- */
-function fillUndertakingForm(driver) {
-  document.getElementById("undertakingDate").textContent = new Date().toLocaleDateString();
-  document.getElementById("uName").textContent = driver.name || '';
-  document.getElementById("uEmpId").textContent = driver.empId || '';
-  document.getElementById("uvehicleNo").textContent = driver.vehicleNo || '';
-  document.getElementById("uassetCode").textContent = driver.assetCode || '';
-  document.getElementById("uContact").textContent = driver.contact || '';
-  document.getElementById("uRemarks").textContent = driver.remarks || '';
-}
-function printUndertaking() {
-  const content = document.getElementById("undertaking");
-  if (!content) return;
-
-  // Save old display state
-  const sections = document.querySelectorAll(".section");
-  sections.forEach(s => s.setAttribute("data-old-display", s.style.display));
-
-  // Show undertaking only
-  sections.forEach(s => s.style.display = "none");
-  content.style.display = "block";
-
-  // Trigger print
-  window.print();
-
-  // Restore old state after print
-  sections.forEach(s => {
-    s.style.display = s.getAttribute("data-old-display") || "none";
+function fillUndertakingFromData(data) {
+  // 1. Clear previous
+  const fields = ['ut_name', 'ut_empId', 'ut_desig', 'ut_proj', 'ut_license', 'ut_contact', 
+                  'ut_model', 'ut_plate', 'ut_asset', 'ut_reg', 'ut_ins', 'ut_km', 
+                  'ut_return_by', 'ut_date_receive', 'ut_date_return'];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if(el) el.textContent = '';
   });
-}
-window.printUndertaking = printUndertaking;
+  document.querySelectorAll('#undertaking input[type="checkbox"]').forEach(cb => cb.checked = false);
 
+  // 2. Fill Vehicle Details
+  document.getElementById('ut_model').textContent = data.category || 'Vehicle'; 
+  document.getElementById('ut_plate').textContent = data.vmNo;
+  document.getElementById('ut_asset').textContent = data.assetNo;
+  document.getElementById('ut_reg').textContent = data.regExp || '';
+
+if (data.regExp) {
+    const regDate = new Date(data.regExp);
+    if (!isNaN(regDate)) {
+      regDate.setMonth(regDate.getMonth() + 1); // Add 1 month
+      // Format as YYYY-MM-DD
+      const insDateStr = regDate.toISOString().split('T')[0];
+      document.getElementById('ut_ins').textContent = insDateStr;
+    }
+  }
+
+  document.getElementById('ut_km').textContent = '________'; 
+
+  // 3. Logic based on Status
+  const isOperation = (data.status === 'In operation');
+  const now = new Date();
+  const dateStr = now.toLocaleDateString();
+  const timeStr = now.toLocaleTimeString();
+
+  if (isOperation) {
+    // FILL RECEIVING (Assigned)
+    document.getElementById('ut_name').textContent = data.userName || '';
+    document.getElementById('ut_empId').textContent = data.empId || '';
+    document.getElementById('ut_desig').textContent = data.designation || '';
+    document.getElementById('ut_proj').textContent = data.project || '';
+    document.getElementById('ut_contact').textContent = data.contact || '';
+    document.getElementById('ut_date_receive').textContent = `Date: ${dateStr} Time: ${timeStr}`;
+    document.getElementById('ut_name').textContent = data.userName; // Top right box
+  } else {
+    // FILL RETURN (Returned)
+    // For return, we put the person returning it in the "Returned By" slot
+ const contactInfo = data.contact ? ` | Contact: ${data.contact}` : "";
+    const returnText = `${data.empId || ''} - ${data.userName || ''}${contactInfo}`;
+    
+    document.getElementById('ut_return_by').textContent = returnText;
+    document.getElementById('ut_date_return').textContent = `Date: ${dateStr} Time: ${timeStr}`;
+    
+    // Clear receiving section
+    document.getElementById('ut_name').textContent = "---";
+  }
+}
 /* -------------------------------- Export PDF Undertaking -------------------------------- */
-window.exportUndertakingPDF = function() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'p',
-    unit: 'mm',
-    format: 'a4'
-  });
 
-  const element = document.getElementById("undertakingContent");
-
-  // Temporarily show undertaking if hidden
-  const parent = document.getElementById("undertaking");
-  const prev = parent.style.display;
-  parent.style.display = "block";
-
-  doc.html(element, {
-    callback: function (doc) {
-      doc.save("undertaking.pdf");
-      parent.style.display = prev; // restore after save
-    },
-    margin: [10, 10, 10, 10],
-    x: 0,
-    y: 0,
-    width: 190,
-    windowWidth: element.scrollWidth
-  });
-};
 
 
 /* -------------------------------- Users -------------------------------- */
@@ -1545,13 +2025,96 @@ async function loadDrivers() {
 
 
 // 1. Navigation update
-const originalNav = window.nav;
+// ... existing nav function code ...
 window.nav = function(id) {
-  originalNav(id);
-  if(id === 'projectsSection') {
-    loadProjects();
-    applyProjFilters();
-  }
+  // 1. Hide all sections
+  $$('.section').forEach(s => s.style.display = 'none');
+  
+  // 2. Clear actives
+  $$('.nav a').forEach(a => a.classList.remove('active'));
+
+  // 3. Show target
+  const target = $(`#${id}`);
+  if(target) target.style.display = 'block';
+
+  // 4. Highlight Nav (Handle dropdown parent)
+  const link = $(`#nav-${id}`);
+  if(link) link.classList.add('active');
+  // Keep parent active if submenu clicked
+  if(id.startsWith('report')) $('#nav-reports').classList.add('active');
+
+  // 5. Loaders
+  if(id === 'dashboard') renderDashboard();
+  if(id === 'list') { applyRoleUI(); applyFilters(); }
+  if(id === 'projectsSection') { loadProjects(); applyProjFilters(); }
+  if(id === 'users') renderUsers();
+  if(id === 'al6m') renderAL6M();
+  if(id === 'undertaking') { /* ... */ }
+  
+  // NEW REPORT LOADER
+  if(id === 'reportRegExp') renderRegExpiryReport();
+};
+
+// Registartion Expiry Function
+
+window.renderRegExpiryReport = function() {
+  const tbody = document.getElementById('regReportBody');
+  tbody.innerHTML = '';
+  
+  const today = new Date();
+  const warningLimit = 15; // Days
+
+  const reportData = state.assets.filter(a => {
+    if(!a.regExp) return false; // Ignore if no date
+    const expDate = new Date(a.regExp);
+    const diffTime = expDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Filter: Expired OR Expiring within 15 days
+    return diffDays <= warningLimit;
+  });
+
+  reportData.sort((a,b) => new Date(a.regExp) - new Date(b.regExp)); // Sort by date ascending
+
+  reportData.forEach(a => {
+    const expDate = new Date(a.regExp);
+    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+    
+    let statusBadge = '';
+    if(diffDays < 0) statusBadge = `<span class="badge b-bad">Expired (${Math.abs(diffDays)} days ago)</span>`;
+    else statusBadge = `<span class="badge b-warn">Expiring in ${diffDays} days</span>`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.vmNo || ''}</td>
+      <td>${a.assetNo || ''}</td>
+      <td>${a.project || ''}</td>
+      <td>${a.regNo || ''}</td>
+      <td style="font-weight:bold">${a.regExp || ''}</td>
+      <td>${diffDays}</td>
+      <td>${statusBadge}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
+
+window.exportRegReport = function() {
+  // Simple Excel Export for the report
+  const today = new Date();
+  const data = state.assets
+    .filter(a => a.regExp && Math.ceil((new Date(a.regExp) - today) / (86400000)) <= 15)
+    .map(a => ({
+       "VM No": a.vmNo,
+       "Asset No": a.assetNo,
+       "Project": a.project,
+       "Reg Expiry": a.regExp,
+       "Days Remaining": Math.ceil((new Date(a.regExp) - today) / (86400000))
+    }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Expiry_Report");
+  XLSX.writeFile(wb, "Reg_Expiry_Report.xlsx");
 };
 
 
@@ -1595,7 +2158,11 @@ window.openAssetModal = function() {
       </div>
     `).join('');
   }
+
+// Add this line where you populate the edit fields:
+handleAssetStatusChange();
 };
+
 
 window.editAsset = function (assetId) {
   const asset = state.assets.find(a => a.id === assetId);
@@ -1625,12 +2192,32 @@ window.editAsset = function (assetId) {
   document.getElementById('a_status').value = asset.status || 'IDLE';
   document.getElementById('a_shift').value = asset.shift || 'Day';
   document.getElementById('a_remarks').value = asset.remarks || '';
+document.getElementById('a_driverLeaveTill').value = ''; // Reset first
+  if (asset.empId) {
+    const driver = state.drivers.find(d => d.empId === asset.empId);
+    if (driver && driver.leaveTill) {
+      document.getElementById('a_driverLeaveTill').value = driver.leaveTill;
+    }
+  }
+  // Populate USER dropdown
+let displayName = "Select User (ID - Name)";
+  if (asset.empId) {
+    const driver = state.drivers.find(d => d.empId === asset.empId);
+    if (driver) {
+      displayName = `${driver.empId} - ${driver.name}`;
+      if (driver.leaveTill) {
+        document.getElementById('a_driverLeaveTill').value = driver.leaveTill;
+      }
+    } else {
+      // Fallback if driver not found in current state
+      displayName = `${asset.empId} - ${asset.userName || 'Unknown'}`;
+    }
+  }
 
   // Populate USER dropdown
   const userDD = document.getElementById('a_userDD');
   userDD.dataset.value = asset.empId || '';
-  userDD.querySelector('.selected').textContent =
-    asset.empId ? `${asset.empId} - ${asset.designation}` : 'Select User (ID - Name)';
+  userDD.querySelector('.selected').textContent = displayName;
 
   // Populate PROJECT dropdown
   const projDD = document.getElementById('a_projectDD');
@@ -1791,107 +2378,161 @@ window.onAssetUserChange = function() {
 
 
 
-
 window.saveOrUpdateAsset = async function () {
+  // 1. Grab values from the Form
+  const vmNo = document.getElementById('a_vmNo').value;
+  const assetNo = document.getElementById('a_assetNo').value;
+  const category = document.getElementById('a_category').value;
+  
+  // User Details (Raw input)
+  const empId = document.getElementById('a_userDD').dataset.value || "";
+  const userText = document.getElementById('a_userDD').querySelector('.selected').textContent;
+  const userName = userText.includes("Select User") ? "" : userText.split('-')[1]?.trim(); // Extract name
+  const designation = document.getElementById('a_designation').value;
+  const contact = document.getElementById('a_contact').value;
+  
+  const project = document.getElementById('a_projectDD').dataset.value || "";
+  const regNo = document.getElementById('a_regNo').value;
+  const regExp = document.getElementById('a_regExp').value;
+  const from = document.getElementById('a_from').value;
+  const till = document.getElementById('a_till').value;
+  const status = document.getElementById('a_status').value || "IDLE";
+  const shift = document.getElementById('a_shift').value || "Day";
+  const remarks = document.getElementById('a_remarks').value;
 
-  const data = {
-    vmNo: document.getElementById('a_vmNo').value,
-    assetNo: document.getElementById('a_assetNo').value,
-    category: document.getElementById('a_category').value,
-    empId: document.getElementById('a_userDD').dataset.value,
-    designation: document.getElementById('a_designation').value,
-    contact: document.getElementById('a_contact').value,
-    project: document.getElementById('a_projectDD').dataset.value,
-    regNo: document.getElementById('a_regNo').value,
-    regExp: document.getElementById('a_regExp').value,
-    from: document.getElementById('a_from').value,
-    till: document.getElementById('a_till').value,
-    status: document.getElementById('a_status').value || "IDLE",
-    shift: document.getElementById('a_shift').value || "Day",
-    remarks: document.getElementById('a_remarks').value,
-    updatedAt: serverTimestamp()
-  };
-if (!data.vmNo || !data.assetNo) {
-    alert("Please fill required fields (VM No and Asset No)");
+  // Validation
+  if (!vmNo || !assetNo) {
+    alert("Please fill required fields (V/M No and Asset No)");
     return;
   }
+//const duplicateAsset = state.assets.find(a => 
+  //  a.assetNo.toLowerCase() === assetNo.toLowerCase() && a.id !== currentEditAssetId
+  //);
+
+ // if (duplicateAsset) {
+ //   alert(`❌ Duplicate Error: Asset No "${assetNo}" already exists in the system (V/M No: ${duplicateAsset.vmNo}).`);
+ //   return; // Stop the save process
+ // }
+  // ---------------------------------------------------------
+  // 2. AUTOMATE UNDERTAKING FILLING (Before Clearing Data)
+  // ---------------------------------------------------------
+  
+  // Create a temporary object of the CURRENT form state to fill the undertaking
+  const formState = {
+    category, vmNo, assetNo, regExp, empId, userName, 
+    designation, contact, project, status
+  };
+  
+  // Helper to fill undertaking UI directly
+  fillUndertakingFromData(formState);
+
+  // ---------------------------------------------------------
+  // 3. PREPARE DATA FOR FIRESTORE
+  // ---------------------------------------------------------
+
+  const data = {
+    vmNo, assetNo, category, 
+    project, regNo, regExp, from, till, status, shift, remarks,
+    updatedAt: serverTimestamp()
+  };
+
+  // LOGIC: If Status is "In operation", SAVE user details.
+  // If Status is anything else (returned), CLEAR user details.
+  if (status === 'In operation') {
+    data.empId = empId;
+    data.userName = userName; // Save name too for easier logging
+    data.designation = designation;
+    data.contact = contact;
+  } else {
+    // CLEAR USER DETAILS IN DB
+    data.empId = "";
+    data.userName = "";
+    data.designation = "";
+    data.contact = "";
+    
+    // Note: We leave 'project' as it might stay on site, but cleared user.
+    // If you want to clear project too, uncomment next line:
+    // data.project = ""; 
+  }
+
   showLoader();
   try {
-// 1. Identify the PREVIOUS technician (if any) to clear their data
-    if (currentEditAssetId) {
-      const oldAssetDoc = state.assets.find(a => a.id === currentEditAssetId);
-      if (oldAssetDoc && oldAssetDoc.empId && oldAssetDoc.empId !== data.empId) {
-        const prevTech = state.drivers.find(d => d.empId === oldAssetDoc.empId);
-        if (prevTech) {
-          await updateDoc(doc(db, COLL_DRIVERS, prevTech.id), {
-            project: "",
-            vehicleNo: "",
-            assetCode: "",
-            status: "IDLE" // Or keep "Active" if preferred
-          });
-          console.log(`Cleaned up previous technician: ${oldAssetDoc.empId}`);
-        }
-      }
-    }
+    let assetRefId = currentEditAssetId;
 
+    // 4. SAVE TO DB (Assets Collection)
     if (currentEditAssetId) {
-      // 🔁 UPDATE
       await updateDoc(doc(db, COLL_ASSETS, currentEditAssetId), data);
-      await addDoc(collection(db, COLL_ASSET_LOGS), {
-        parentId: currentEditAssetId,
-        type: "UPDATE",
-        message: "Asset updated",
-        user: `${state.me.username} (${state.me.role})`,
-        timestamp: serverTimestamp()
-      });
-
-      alert("Asset updated successfully");
     } else {
-      // ➕ ADD
       const ref = await addDoc(collection(db, COLL_ASSETS), data);
-      await addDoc(collection(db, COLL_ASSET_LOGS), {
-        parentId: ref.id,
-        type: "CREATE",
-        message: "Asset created",
-        user: `${state.me.username} (${state.me.role})`,
-        timestamp: serverTimestamp()
-      });
-
-      alert("Asset added successfully");
+      assetRefId = ref.id;
     }
 
-// 2. REFLECT CHANGES IN DRIVER/OPERATOR TABLE [Your Requirement]
-    if (data.empId) {
-      // Find the technician in the local state by Employee ID
-      const tech = state.drivers.find(d => d.empId === data.empId);
-      
-      if (tech) {
-        // Find the Project ID to create the "Project Name (ID)" string
-        const projectObj = state.projects.find(p => p.p_name === data.project);
-        const projectWithId = projectObj ? `${data.project} (${projectObj.p_id})` : data.project;
+    // 5. SAVE LOG (Full Snapshot in Table Format)
+    // We save the 'formState' details (including the user who just returned it) 
+    // so the log shows who had it last.
+    await addDoc(collection(db, COLL_ASSET_LOGS), {
+      parentId: assetRefId,
+      type: currentEditAssetId ? "UPDATE" : "CREATE",
+      // Save all specific fields for the Table
+      vmNo, assetNo, category, 
+      empId: formState.empId, userName: formState.userName, // Log the user even if we clear them in DB
+      designation: formState.designation, contact: formState.contact,
+      project, regNo, regExp, from, till, status, shift, remarks,
+      user: state.me.username,
+      timestamp: serverTimestamp()
+    });
 
-        const techRef = doc(db, COLL_DRIVERS, tech.id);
-        await updateDoc(techRef, {
-          project: projectWithId,   // Project name with ID
-          vehicleNo: data.vmNo,     // From Asset VM No
-          assetCode: data.assetNo,  // From Asset No
-          status: "Active",         // Set to Active automatically
-          leaveSince: "",           // Clear Resigned/Leave date
-          leaveTill: ""             // Clear Leave Till date
-        });
-        console.log(`Technician ${data.empId} updated automatically.`);
+    // 6. UPDATE DRIVER STATUS (If applicable)
+    // ... (Keep your existing driver update logic here) ...
+    const drvStatus = document.getElementById('a_driverStatus').value;
+    const drvLeaveTill = document.getElementById('a_driverLeaveTill').value;
+    
+    if (empId) { // Use the empId we grabbed at the start
+      const tech = state.drivers.find(d => d.empId === empId);
+      if (tech) {
+         // ... (Your existing logic for updating driver goes here) ...
+         // Simplified for brevity, ensure you keep the logic from your previous code
+         const projectObj = state.projects.find(p => p.p_name === project);
+         const projectWithId = projectObj ? `${project} (${projectObj.p_id})` : project;
+         
+         let driverUpdates = { status: drvStatus };
+         
+         if (status === 'In operation') {
+           driverUpdates.project = projectWithId;
+           driverUpdates.vehicleNo = vmNo;
+           driverUpdates.assetCode = assetNo;
+         } else {
+           driverUpdates.project = "";
+           driverUpdates.vehicleNo = "";
+           driverUpdates.assetCode = "";
+         }
+         
+         // Driver Dates Logic
+         if (drvStatus !== 'Active') {
+            driverUpdates.leaveSince = till ? till.split('T')[0] : new Date().toISOString().split('T')[0];
+            driverUpdates.leaveTill = drvLeaveTill || null;
+         } else {
+            driverUpdates.leaveSince = null;
+            driverUpdates.leaveTill = null;
+         }
+
+         await updateDoc(doc(db, COLL_DRIVERS, tech.id), driverUpdates);
+         await logStatusChange(tech.id, drvStatus, `Updated via Asset ${assetNo} (${status})`);
       }
     }
 
+    // 7. CLEAN UP & REDIRECT
     resetAssetForm();
     closeAssetModal();
-    currentEditAssetId = null;
+    toast("✅ Saved & Form Generated");
+    
+    // Redirect to Undertaking Section automatically
+    nav('undertaking');
 
   } catch (err) {
     console.error(err);
-    alert("Error saving asset");
-  }
-finally {
+    alert("Error saving: " + err.message);
+  } finally {
     hideLoader();
   }
 };
@@ -2216,22 +2857,30 @@ function updateAssetPagination() {
 
 /* --- Inside your deleteAsset function --- */
 
-async function deleteAsset(docId) {
-  if (!confirm("Are you sure?")) return;
-  
-  showLoader(); 
+window.deleteAsset = async function(id) {
+  if(!confirm("Are you sure? This will also delete all history logs for this asset.")) return;
+  showLoader();
   try {
-    const docRef = doc(db, COLL_ASSETS, docId);
-    await deleteDoc(docRef);
-    
-    hideLoader(); // Hide loader before the alert
-    alert("Asset deleted successfully");
-  } catch (err) {
+    // 1. Delete the Asset itself
+    await deleteDoc(doc(db, COLL_ASSETS, id));
+
+    // 2. Delete all related logs from COLL_ASSET_LOGS
+    const q = query(collection(db, COLL_ASSET_LOGS), where("parentId", "==", id));
+    const snap = await getDocs(q);
+    const batch = writeBatch(db); // Using a batch is faster for multiple deletes
+    snap.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    toast("Asset and logs deleted");
+  } catch(err) {
+    alert(err.message);
+  } finally {
     hideLoader();
-    alert("Error: " + err.message);
   }
-}
-window.deleteAsset = deleteAsset; // This fixes the 'not defined' error
+};
+window.deleteAsset = deleteAsset; 
 
 // Helper function to reset the form for "Best Results" and clean UI
 function resetAssetForm() {
@@ -2301,32 +2950,9 @@ function updateDriverCache(){
 
 function refreshAll(){
   renderDashboard();
-  updateDashboardCounts();   // ⬅️ add here
   applyFilters();
 }
 
-function updateDashboardCounts() {
-  const all = state.drivers || [];
-
-  const drivers = all.filter(isDriver);
-  const operators = all.filter(isOperator);
-
-  const totalDrivers = drivers.length;
-  const activeDrivers = drivers.filter(d => d.status === "Active").length;
-
-  const totalOperators = operators.length;
-  const activeOperators = operators.filter(d => d.status === "Active").length;
-
-  const onLeave = all.filter(d => d.status === "On Leave").length;
-  const resigned = all.filter(d => d.status === "Resigned").length;
-
-  $('#totalDrivers').textContent = totalDrivers;
-  $('#activeDrivers').textContent = `Active: ${activeDrivers}`;
-  $('#totalOperators').textContent = totalOperators;
-  $('#activeOperators').textContent = `Active: ${activeOperators}`;
-  $('#onLeave').textContent = onLeave;
-  $('#resigned').textContent = resigned;
-}
 
 
 // Disable/enable leaveSince based on status
@@ -2398,7 +3024,7 @@ async function addEntry() {
     const empId = $('#empId')?.value.trim();
     const name = $('#name')?.value.trim();
     const designation = $('#designation')?.value;
-    project: document.getElementById("driverProjectDD").dataset.value;
+    const project = document.getElementById('driverProjectDD').dataset.value || "";
     const vehicleNo = $('#vehicleNo')?.value.trim();
     const assetCode = $('#assetCode')?.value.trim();
     const contact = $('#contact')?.value.trim();
@@ -2414,11 +3040,15 @@ async function addEntry() {
       return;
     }
 
-    if (!empId || !name || !designation || !project || !vehicleNo || !joiningDate) {
-      toast('Please fill all required fields (ID, Name, Desig, Project, Vehicle, Date)');
+    if (!empId || !name || !designation || !joiningDate) {
+      toast('Please fill all required fields (ID, Name, Desig, jOINING Date)');
       return;
     }
-
+const isDuplicate = state.drivers.some(d => d.empId.toLowerCase() === empId.toLowerCase());
+  if (isDuplicate) {
+    alert(`❌ Duplicate Error: Employee ID "${empId}" is already registered.`);
+    return;
+  }
     // 3. Prepare Payload
     let payload = {
       empId, name, designation, project, vehicleNo,
@@ -2446,8 +3076,8 @@ const shift = document.getElementById('shift').value;
     const docRef = await addDoc(collection(db, COLL_DRIVERS), payload);
     
     // Log change
-    if (typeof logStatusChange === 'function') {
-      await logStatusChange(docRef.id, status, remarks);
+if (typeof logStatusChange === 'function') {
+      await logStatusChange(docRef.id, status, remarks, payload);
     }
 
  
@@ -2584,7 +3214,7 @@ if (new Date() <= new Date(leaveTillDate.getTime() + grace)) {
     rec.leaveTill = null; // keep only leaveSince
   }
 
-  await updateDoc(doc(db, COLL_DRIVERS, id), rec);
+  await logStatusChange(id, status, rec.remarks, rec);
 if (prev?.status !== status) {
   await logStatusChange(id, status, rec.remarks);
 }
@@ -2612,55 +3242,101 @@ window.saveEdit = saveEdit;
 
 /* -----------------------  Log Status Function -------------------- */
 
-async function logStatusChange(driverId, newStatus, remarks="") {
-  await addDoc(collection(db, COLL_DRIVERS, driverId, "logs"), {
-    status: newStatus,
-    remarks,
+
+async function logStatusChange(driverId, newStatus, remarks="", fullRecord = null) {
+  // If fullRecord is not provided, try to find it in state
+  let snapshot = fullRecord;
+  if (!snapshot) {
+    snapshot = state.drivers.find(d => d.id === driverId) || {};
+  }
+
+  // Create a clean snapshot object
+  const logData = {
+    empId: snapshot.empId || '',
+    name: snapshot.name || '',
+    designation: snapshot.designation || '',
+    project: snapshot.project || '',
+    vehicleNo: snapshot.vehicleNo || '',
+    assetCode: snapshot.assetCode || '',
+    contact: snapshot.contact || '',
+    joiningDate: snapshot.joiningDate || '',
+    leaveSince: snapshot.leaveSince || '',
+    leaveTill: snapshot.leaveTill || '',
+    status: newStatus, // Ensure we log the status triggering this
+    remarks: remarks,
     changedAt: serverTimestamp(),
     changedBy: state.me?.username || "system"
-  });
+  };
+
+  await addDoc(collection(db, COLL_DRIVERS, driverId, "logs"), logData);
 }
 
-/* -----------------------  open Function -------------------- */
+/* -----------------------  open log Function -------------------- */
+
+
+
 async function openLogs(driverId, driverName) {
-console.log("Opening logs for", driverId, driverName);
-const container = document.getElementById("logsTimeline");
-container.innerHTML = `<div style="text-align:center;padding:20px;">
-  <span style="font-size:14px;color:#475569;">⏳ Please wait, loading logs...</span>
-</div>`;
-document.getElementById("logsModal").style.display = "flex";
-state.currentLogDriver = { id: driverId, name: driverName }; // <-- added
+  const container = document.getElementById("logsTimeline");
+  container.innerHTML = `<div style="text-align:center;padding:20px;">
+    <span style="font-size:14px;color:#475569;">⏳ Loading Driver Logs...</span>
+  </div>`;
+  document.getElementById("logsModal").style.display = "flex";
+  state.currentLogDriver = { id: driverId, name: driverName };
 
   const qSnap = await getDocs(
-    query(
-      collection(db, COLL_DRIVERS, driverId, "logs"),
-      orderBy("changedAt", "asc")
-    )
+    query(collection(db, COLL_DRIVERS, driverId, "logs"), orderBy("changedAt", "desc"))
   );
 
-  //const container = document.getElementById("logsTimeline");
-  container.innerHTML = `<h4>${driverName}</h4><ul style="list-style:none;padding:0;">`;
+  if (qSnap.empty) {
+    container.innerHTML = `<div style="padding:20px;text-align:center">No logs found.</div>`;
+    return;
+  }
+
+  // Build Table HTML
+  let html = `<h4>History: ${driverName}</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Date/Time</th>
+        <th>Status</th>
+        <th>Project</th>
+        <th>Vehicle</th>
+        <th>Asset Code</th>
+        <th>Contact</th>
+        <th>Dates (Join/Leave/Till)</th>
+        <th>Remarks</th>
+        <th>By</th>
+      </tr>
+    </thead>
+    <tbody>`;
 
   qSnap.forEach(doc => {
     const d = doc.data();
     const date = d.changedAt?.toDate().toLocaleString() || "";
-    const color = d.status === "Active" ? "green"
-                : d.status === "On Leave" ? "orange"
-                : d.status === "Resigned" ? "red"
-                : d.status === "Transfer" ? "blue"
-                : "gray";
+    
+    // Combine dates for compactness
+    const dates = `Join: ${d.joiningDate||''}<br>Since: ${d.leaveSince||''}<br>Till: ${d.leaveTill||''}`;
 
-    container.innerHTML += `
-      <li style="margin:8px 0; padding:8px; border-left:4px solid ${color}; background:#f9fafb; border-radius:6px;">
-        <b style="color:${color}">${d.status}</b> 
-        <small>(${date} by ${d.changedBy})</small><br>
-        <i>${d.remarks || ""}</i>
-      </li>`;
+    html += `
+      <tr>
+        <td>${date}</td>
+        <td style="font-weight:bold; color:${d.status === 'Active' ? 'green' : 'red'}">${d.status}</td>
+        <td>${d.project || '-'}</td>
+        <td>${d.vehicleNo || '-'}</td>
+        <td>${d.assetCode || '-'}</td>
+        <td>${d.contact || '-'}</td>
+        <td style="font-size:11px">${dates}</td>
+        <td>${d.remarks || ''}</td>
+        <td>${d.changedBy || ''}</td>
+      </tr>`;
   });
-  container.innerHTML += "</ul>";
 
-  document.getElementById("logsModal").style.display = "flex";
+  html += `</tbody></table>`;
+  container.innerHTML = html;
 }
+
+
+/* -----------------------  Close log Function -------------------- */
 
 function closeLogs() {
   const modal = document.getElementById("logsModal");
@@ -2696,6 +3372,41 @@ async function removeRow(ix) {
   }
 }
 window.removeRow = removeRow;
+
+
+function handleAssetStatusChange() {
+  const status = document.getElementById('a_status').value;
+  //const fromEl = document.getElementById('a_from');
+  const tillEl = document.getElementById('a_till');
+  
+  // New elements to reset
+  const driverStatusEl = document.getElementById('a_driverStatus');
+  const driverLeaveTillEl = document.getElementById('a_driverLeaveTill');
+
+  if (status === 'In operation') {
+    // 1. Handle Asset Dates
+    tillEl.value = '';
+    tillEl.disabled = true;
+    tillEl.style.background = '#f1f5f9';
+    tillEl.placeholder = "N/A (In Operation)";
+
+    // 2. Reset Driver Status Section
+    if (driverStatusEl) driverStatusEl.value = 'Active'; // Resets to "Keep Driver Active"
+    if (driverLeaveTillEl) {
+      driverLeaveTillEl.value = '';
+      driverLeaveTillEl.type = 'text'; // Returns to text placeholder mode
+      driverLeaveTillEl.placeholder = "📅 Manual: Leave Till";
+    }
+    
+  } else {
+    // Re-enable Till Date if status is anything else (IDLE, Maintenance, etc.)
+    tillEl.disabled = false;
+    tillEl.style.background = ''; 
+    tillEl.placeholder = "📅 Till Date/Time";
+  }
+}
+
+window.handleAssetStatusChange= handleAssetStatusChange;
 
 /* ----------------------- hard refresh -------------------- */
 
@@ -2817,14 +3528,19 @@ window.renderAssetTable = function() {
     const projectDisplay = projectObj 
       ? `${asset.project} (${projectObj.p_id})` 
       : (asset.project || '—');
-let userDisplay = '';
-    if (asset.empId && asset.name) {
-      userDisplay = `${asset.empId} - ${asset.name}`;
-    } else {
-      userDisplay = asset.empId || asset.name || '—';
+let userDisplay = '—';
+    if (asset.empId) {
+      // Look up the full driver object to get the name
+      const driver = state.drivers.find(d => d.empId === asset.empId);
+      const driverName = driver ? driver.name : (asset.name || ''); 
+      userDisplay = `${asset.empId} - ${driverName}`;
     }
 
     const tr = document.createElement('tr');
+tr.oncontextmenu = (e) => {
+      e.preventDefault(); 
+      openAssetLogs(asset.id, asset.assetNo); // Call new function
+    };
     tr.innerHTML = `
 <td>${asset.vmNo || ''}</td>
       <td>${asset.assetNo || ''}</td>
@@ -2852,6 +3568,63 @@ let userDisplay = '';
   updateAssetPagination();
 };
 
+
+/* ------------------------------ Open Asset Logs --------------------------- */
+
+window.openAssetLogs = async function(assetId, assetNo) {
+  const container = document.getElementById("logsTimeline");
+  container.innerHTML = `<div style="text-align:center;padding:20px;">⏳ Loading Asset Logs...</div>`;
+  document.getElementById("logsModal").style.display = "flex";
+  
+  const qSnap = await getDocs(query(
+    collection(db, COLL_ASSET_LOGS), 
+    where("parentId", "==", assetId),
+    orderBy("timestamp", "desc")
+  ));
+
+  let html = `<h4>Asset History: ${assetNo}</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Status</th>
+        <th>User</th>
+        <th>Project</th>
+        <th>Designation</th>
+        <th>Contact</th>
+        <th>From/Till</th>
+        <th>Remarks</th>
+        <th>By</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  if(qSnap.empty){
+     container.innerHTML = `<div style="padding:20px;">No history found.</div>`;
+     return;
+  }
+
+  qSnap.forEach(doc => {
+    const d = doc.data();
+    const date = d.timestamp?.toDate().toLocaleString() || "";
+    
+    html += `
+      <tr>
+        <td>${date}</td>
+        <td><b>${d.status || d.type}</b></td>
+        <td>${d.empId ? d.empId + ' - ' : ''}${d.userName || ''}</td>
+        <td>${d.project || ''}</td>
+        <td>${d.designation || ''}</td>
+        <td>${d.contact || ''}</td>
+        <td style="font-size:11px">F: ${d.from||''}<br>T: ${d.till||''}</td>
+        <td>${d.remarks || ''}</td>
+        <td>${d.user || ''}</td>
+      </tr>`;
+  });
+  
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+};
 /* ------------------------------ Import/Export --------------------------- */
 // Import: allow invalids, mark bad cells (contact/assetCode), include project
 
@@ -3040,92 +3813,220 @@ function countByProject(arr){
   });
   return map;
 }
+/*--------------------Render Dashboard------------------*/
+
+let charts = {}; // Store chart instances globally to destroy them later
 
 function renderDashboard(){
-  const driversArr = state.drivers.filter(isDriver);
-  const opsArr     = state.drivers.filter(isOperator);
+  // 1. DATA PREPARATION
+  const assets = state.assets || [];
+  const drivers = state.drivers || [];
+  const projects = state.projects || [];
+  
+  // --- KPI 1: Asset Status ---
+  const assetStats = { Total: assets.length, Operation: 0, IDLE: 0, Maintenance: 0, Others: 0 };
+  const assetStatusCounts = {}; // For Chart
+  
+  assets.forEach(a => {
+    const s = a.status || 'Unknown';
+    assetStatusCounts[s] = (assetStatusCounts[s] || 0) + 1;
+    
+    if(s === 'In operation') assetStats.Operation++;
+    else if(s === 'IDLE') assetStats.IDLE++;
+    else if(s === 'Maintenance') assetStats.Maintenance++;
+    else assetStats.Others++;
+  });
+  
+  document.getElementById('kpi_asset_total').textContent = assetStats.Total;
+  document.getElementById('kpi_asset_sub').textContent = `Op: ${assetStats.Operation} | Idle: ${assetStats.IDLE}`;
 
-  const DRV = countByStatus(driversArr);
-  const OPR = countByStatus(opsArr);
-  const VEN = countByProject(state.drivers);
+  // --- KPI 2: Driver Status ---
+  const drvStats = { Total: drivers.length, Active: 0, Leave: 0 };
+  const drvStatusCounts = {}; // For Chart
 
-let totalLeave = state.drivers.filter(d => d.status === "On Leave").length;
-let returnedOnTime = state.drivers.filter(d => d.returnedOnTime).length;  // ⬅ use flag
-let overstay = state.annualLeaveOver6M.filter(d => d.category === "Overstay").length;
-let leave6m  = state.annualLeaveOver6M.filter(d => d.category === "Leave > 6 Months").length;
+  drivers.forEach(d => {
+    const s = d.status || 'Unknown';
+    drvStatusCounts[s] = (drvStatusCounts[s] || 0) + 1;
+    if(s === 'Active') drvStats.Active++;
+    if(s === 'On Leave') drvStats.Leave++;
+  });
+
+  document.getElementById('kpi_driver_total').textContent = drvStats.Total;
+  document.getElementById('kpi_driver_sub').textContent = `Act: ${drvStats.Active} | Lve: ${drvStats.Leave}`;
+
+  // --- KPI 3: Registration Status ---
+  let validReg = 0, expReg = 0, nearReg = 0;
+  const today = new Date();
+  
+  assets.forEach(a => {
+    if(a.regExp) {
+      const d = new Date(a.regExp);
+      const diff = (d - today) / (1000*60*60*24);
+      if(diff < 0) expReg++;
+      else if(diff <= 15) nearReg++;
+      else validReg++;
+    }
+  });
+  
+  document.getElementById('kpi_reg_total').textContent = assets.filter(a=>a.regExp).length;
+  document.getElementById('kpi_reg_sub').textContent = `Valid: ${validReg} | Exp/Near: ${expReg + nearReg}`;
+
+  // --- CHARTS PREPARATION ---
+  
+  // 1. Project-wise Asset Count
+  const projAssetCount = {};
+  assets.forEach(a => {
+    const p = a.project || 'Unassigned';
+    projAssetCount[p] = (projAssetCount[p] || 0) + 1;
+  });
+
+  // 2. Asset Category
+  const catCount = {};
+  assets.forEach(a => {
+    const c = a.category || 'Other';
+    catCount[c] = (catCount[c] || 0) + 1;
+  });
+
+  // 3. Project Status
+  const projStatusCount = {};
+  projects.forEach(p => {
+    const s = p.status || 'Unknown';
+    projStatusCount[s] = (projStatusCount[s] || 0) + 1;
+  });
+
+  // 4. Project Division
+  const divCount = {};
+  projects.forEach(p => {
+    const d = p.p_div || 'Unknown';
+    divCount[d] = (divCount[d] || 0) + 1;
+  });
 
 
-  const LEAVE = {
-    "Total On Leave": totalLeave,
-    "Returned on Time": returnedOnTime,
-    "Overstay": overstay,
-    "Leave > 6 Months": leave6m
+  // --- RENDERING CHARTS ---
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: {size: 9} } } }
   };
-  // KPIs
-  $('#drv_total')?.replaceChildren?.(); // if you kept IDs in your earlier HTML (optional)
-  // If you want live counters on cards like before, re-use those IDs; otherwise charts below suffice.
-
-  // Destroy old charts (avoid overlay)
-  if(driverChart) driverChart.destroy();
-  if(operatorChart) operatorChart.destroy();
-  if(projectChart) projectChart.destroy();
-if(leaveChart) leaveChart.destroy();
-
-  // Drivers status
-  driverChart = new Chart($('#driverChart'), {
-    type:'doughnut',
-    data:{ labels:Object.keys(DRV), datasets:[{ data:Object.values(DRV) }] },
-    options:{
-      plugins:{ title:{display:true, text:'Drivers Status'} },
-      onClick:(evt, els)=>{ if(els.length){ filterFromStatus('driver', Object.keys(DRV)[els[0].index]); } }
-    }
+  
+  // Helper to destroy old charts
+  ['projectAssetChart', 'assetStatusChart', 'opStatusChart', 'assetCatChart', 'projStatusChart', 'projDivChart'].forEach(id => {
+    if(charts[id]) charts[id].destroy();
   });
 
-  // Operators status
-  operatorChart = new Chart($('#operatorChart'), {
-    type:'doughnut',
-    data:{ labels:Object.keys(OPR), datasets:[{ data:Object.values(OPR) }] },
-    options:{
-      plugins:{ title:{display:true, text:'Operators Status'} },
-      onClick:(evt, els)=>{ if(els.length){ filterFromStatus('operator', Object.keys(OPR)[els[0].index]); } }
-    }
+  // 1. Project Assets (Bar)
+  charts['projectAssetChart'] = new Chart(document.getElementById('projectAssetChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(projAssetCount),
+      datasets: [{ label: 'Count', data: Object.values(projAssetCount), backgroundColor: '#3b82f6' }]
+    },
+    options: { ...commonOptions, plugins: { legend: { display: false } } } // Hide legend for bar
   });
 
-  // Project distribution (full width below)
-projectChart = new Chart($('#projectChart'), {
-  type:'bar',
-  data:{
-    labels:Object.keys(VEN),
-    datasets:[{
-      label:'Project Status',
-      data:Object.values(VEN),
-      backgroundColor:['#2563eb','#16a34a','#f59e0b','#ef4444']  // optional colors
-    }]
-  },
-  options:{
-    plugins:{ title:{display:true, text:'Project Distribution'} },
-    scales:{ y:{ beginAtZero:true } }
-  }
-});
-// Leave distribution chart
-leaveChart = new Chart($('#leaveChart'), {
-  type:'bar',
-  data:{
-    labels:Object.keys(LEAVE),
-    datasets:[{
-      label:'Leave Analysis',
-      data:Object.values(LEAVE),
-      backgroundColor:['#2563eb','#16a34a','#f59e0b','#ef4444']
-    }]
-  },
-  options:{
-    plugins:{ title:{display:true, text:'Drivers Leave Analysis'} },
-    scales:{ y:{ beginAtZero:true } }
-  }
-});
+  // 2. Asset Status (Doughnut)
+  charts['assetStatusChart'] = new Chart(document.getElementById('assetStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(assetStatusCounts),
+      datasets: [{ data: Object.values(assetStatusCounts), backgroundColor: ['#22c55e','#f59e0b','#ef4444','#64748b','#3b82f6','#a855f7'] }]
+    },
+    options: commonOptions
+  });
 
+  // 3. Operator Status (Doughnut)
+  charts['opStatusChart'] = new Chart(document.getElementById('opStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(drvStatusCounts),
+      datasets: [{ data: Object.values(drvStatusCounts), backgroundColor: ['#22c55e','#f59e0b','#ef4444','#0ea5e9','#64748b'] }]
+    },
+    options: commonOptions
+  });
+
+  // 4. Asset Category (Pie)
+  charts['assetCatChart'] = new Chart(document.getElementById('assetCatChart'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(catCount),
+      datasets: [{ data: Object.values(catCount), backgroundColor: ['#f97316','#8b5cf6','#06b6d4','#ec4899'] }]
+    },
+    options: commonOptions
+  });
+
+  // 5. Project Status (Pie)
+  charts['projStatusChart'] = new Chart(document.getElementById('projStatusChart'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(projStatusCount),
+      datasets: [{ data: Object.values(projStatusCount), backgroundColor: ['#22c55e','#94a3b8','#f59e0b'] }]
+    },
+    options: commonOptions
+  });
+
+  // 6. Project Division (Bar - Horizontal is better for names)
+  charts['projDivChart'] = new Chart(document.getElementById('projDivChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(divCount),
+      datasets: [{ label:'Count', data: Object.values(divCount), backgroundColor: '#6366f1' }]
+    },
+    options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
+  });
 }
 
+// Global function to expand chart
+window.expandChart = function(chartId) {
+  const modal = document.getElementById('chartModal');
+  const modalCanvas = document.getElementById('expandedCanvas');
+  const sourceChart = charts[chartId];
+  
+  if(!sourceChart) return;
+
+  modal.style.display = 'flex';
+  
+  // Destroy previous modal chart if exists
+  if(charts['expanded']) charts['expanded'].destroy();
+
+  // Create new chart in modal with same config but bigger
+  charts['expanded'] = new Chart(modalCanvas, {
+    type: sourceChart.config.type,
+    data: sourceChart.config.data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Detailed View', font: { size: 18 } }
+      }
+    }
+  });
+};
+
+window.expandChart = function(chartId) {
+  const modal = document.getElementById('chartModal');
+  const modalCanvas = document.getElementById('expandedCanvas');
+  const sourceChart = charts[chartId];
+  
+  if(!sourceChart) return;
+  modal.style.display = 'flex';
+  
+  if(charts['expanded']) charts['expanded'].destroy();
+
+  charts['expanded'] = new Chart(modalCanvas, {
+    type: sourceChart.config.type,
+    data: sourceChart.config.data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' }
+      }
+    }
+  });
+};
+
+/*--------------------FIletr from status------------------*/
 function filterFromStatus(role, status){
   nav('list');
   $('#fStatus').value = status;
