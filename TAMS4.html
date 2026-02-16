@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>TAMS</title>
-<link rel="icon" type="image/x-icon" href="logo.ico">
+<title>Trojan Asset Management</title>
+<link rel="icon" type="image/x-icon" href="TRWeb.png">
 
 <!-- projects -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -187,7 +187,7 @@
 }
   .login-hint{font-size:12px;color:#94a3b8;margin-top:10px}
 .login-logo {
-  width: 80px;          /* size of logo */
+  width: 250px;          /* size of logo */
   height: auto;
   margin-bottom: 15px;
   border-radius: 12px;  /* optional rounded corners */
@@ -383,7 +383,12 @@ input::placeholder {
   align-items: center;
   flex-wrap: wrap;
 }
-
+.toolbar-right .btn {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .date-range-group {
     display: flex;
     align-items: center;
@@ -657,7 +662,7 @@ input:focus {
   background-image: url('NPClogo.png'); 
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 500px; /* Adjust size of watermark here */
+  background-size: 720px; /* Adjust size of watermark here */
   opacity: 0.12; /* Controls how faint the watermark is (0.1 is 10%) */
   pointer-events: none; /* Ensures you can still click/select text */
   z-index: 0;
@@ -749,8 +754,69 @@ input:focus {
 /* Modal for Expanded Chart */
 #chartModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; align-items: center; justify-content: center; }
 #chartModalContent { background: white; width: 90%; height: 80%; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; }
-
-
+.password-container {
+  position: relative;
+  width: 100%;
+}
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%); /* Center vertically relative to input, not container */
+  cursor: pointer;
+  font-size: 18px;
+  color: #cbd5e1;
+  user-select: none;
+  margin-top: 5px; /* Slight adjustment based on your input margin */
+}
+.toggle-password:hover { color: #fff; }
+/* Multi-Select Styles */
+.multi-select {
+  position: relative;
+  width: 100%;
+}
+.select-box {
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 14px;
+}
+.options-container {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.options-container.active {
+  display: block;
+}
+.options-container .option {
+  display: block;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.options-container .option:hover {
+  background: #f8fafc;
+}
+.options-container input {
+  margin-right: 10px;
+  width: auto !important; /* Override global input width */
+  height: auto !important;
+}
 
 </style>
 </head>
@@ -758,10 +824,10 @@ input:focus {
 
 <!-- Loader Overlay -->
 <div id="loaderOverlay" style="
-  display:none;
+  display:flex;
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.5);
+  background:rgba(0,0,0,0.8);
   z-index:9999;
    align-items:center;
   justify-content:center;
@@ -779,10 +845,12 @@ input:focus {
 <!-- LOGIN -->
 <div id="loginWrap" class="login-wrap">
 <div class="login-card">
-  <img src="Trojan.png" alt="Trojan Contracting" class="login-logo" />
-  <h1>TAMS</h1>
+  <img src="TAMS_logo1.png" alt="Trojan Contracting" class="login-logo" />
   <input id="u" placeholder="Username" />
-  <input id="p" placeholder="Password" type="password" />
+  <div class="password-container">
+    <input id="p" placeholder="Password" type="password" />
+    <span id="togglePassword" class="toggle-password" onclick="togglePass()">👁️</span>
+  </div>
   <button id="loginBtn" class="login-btn">Login</button>
   <div class="login-hint"></div>
 </div>
@@ -804,8 +872,10 @@ input:focus {
     <div class="nav-item">
       <a href="#" id="nav-reports" onclick="void(0)">Reports ▾</a>
       <div class="dropdown-content">
-        <a href="#" onclick="nav('reportRegExp')">1. Registration Expiry</a>
-        <a href="#" onclick="nav('reportRegRenewal')">2. Registration Renewal</a> 
+<a href="#" onclick="nav('reportActivity')">1. Activity & Custom Reports</a>
+        <a href="#" onclick="nav('reportRegExp')">2. Registration Expiry</a>
+        <a href="#" onclick="nav('reportRegRenewal')">3. Registration Renewal</a> 
+<a href="#" onclick="nav('')">4. License Expiry (Featuring Soon)</a> 
 </div>
     </div>
   <a href="#" id="nav-undertaking" onclick="nav('undertaking')">Undertaking</a>
@@ -903,7 +973,7 @@ input:focus {
   
   <div class="toolbar card">
 <div class="toolbar-left">
-    <input id="assetSearch" placeholder="Search Assets..." oninput="applyAssetFilters()" />
+   <input id="assetSearch" placeholder="Search Assets..." oninput="fetchAssets(null)" />
     <select id="fAssetCat" onchange="applyAssetFilters()">
       <option value="">All Categories</option>
       <option>Vehicle</option>
@@ -918,13 +988,15 @@ input:focus {
       <option>service</option><option>passing work</option><option>Scrap</option>
       <option>cancelled</option><option>to be sold</option><option>sold</option>
     </select>
+ </div>
+
     <div class="toolbar-right">
     <button class="btn" onclick="openAssetModal()">+ Add Asset</button>
-    <button class="btn secondary" onclick="importAssetExcel()">Import Excel</button>
-    <button class="btn" onclick="exportAssetExcel()">Export Excel</button>
+   <button class="btn secondary" data-hide-for="Admin,Viewer" onclick="openImportModal('asset')">Import Excel</button>
+    <button class="btn"data-hide-for="Admin,Viewer" onclick="exportAssetExcel()">📤 Export Excel</button>
   </div>
 </div>
-  </div>
+ 
 
 
   <div class="table-wrap">
@@ -954,11 +1026,21 @@ input:focus {
   </div>
 
 
+
 <div class="pagination">
-  <button class="page-btn" onclick="changeAssetPage(-1)">◀ Prev</button>
-  <span id="assetPageInfo">Page 1 of 1</span>
-  <button class="page-btn" onclick="changeAssetPage(1)">Next ▶</button>
+    Rows/page:
+    <select id="pageSize" onchange="state.assetPageSize=parseInt(this.value); state.assetLocalPage=1; renderAssetTable();">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+    </select>
+    <button class="page-btn" onclick="fetchAssets(null)">⏮ First</button>
+    <button class="page-btn" onclick="prevAssetPage()">◀ Prev</button> 
+    <span id="assetPageInfo">Loading...</span>
+    <button class="page-btn" onclick="nextAssetPage()">Next ▶</button>
 </div>
+
+
 </section>
 
 
@@ -1057,9 +1139,9 @@ input:focus {
         <div class="grid grid-2" style="gap:10px;">
           <div>
             <label style="font-size:11px; color:#64748b;">Action</label>
-            <select id="a_driverStatus">
+            <select id="a_driverStatus" onchange="handleAssetStatusChange()"> 
               <option value="Active">Keep Driver Active</option>
-<option value="IDLE">Set Driver: IDLE</option>
+		<option value="IDLE">Set Driver: IDLE</option>
               <option value="On Leave">Set Driver: On Leave</option>
               <option value="Resigned">Set Driver: Resigned</option>
               <option value="Transfer">Set Driver: Transfer</option>
@@ -1071,7 +1153,8 @@ input:focus {
           </div>
         </div>
         <small style="color:#64748b; display:block; margin-top:8px;">
-          * Selecting "On Leave" or "Resigned" uses the Asset "Till Date" as the event start date.
+          * Selecting "On Leave","IDLE","Transfer"  or "Resigned" uses the Asset "Till Date" as the Leave event end date.
+
         </small>
       </div>
     </div>
@@ -1087,6 +1170,7 @@ input:focus {
     <section id="list" class="section" style="display:none">
       <h2>Driver/Operator List</h2>
       <div class="toolbar card">
+<div class="toolbar-left">
         <input id="search" placeholder="Search" oninput="applyFilters()" />
         <select id="fDesignation" onchange="applyFilters()">
           <option value="">All Designations</option>
@@ -1110,17 +1194,16 @@ input:focus {
           <option>IDLE</option>
           <option>Others...</option>
         </select>
-        <span class="page-size">Rows/page:
-          <select id="pageSize" onchange="applyFilters()">
-            <option>10</option><option>20</option><option>50</option><option>100</option>
-          </select>
-        </span>
-       <input type="file" id="excelFile" accept=".xlsx,.xls" />
-<button id="btnImport" class="btn secondary" onclick="importExcel()">Import Excel</button>
+ </div>
 
-        <button class="btn" onclick="exportExcel()">Export Excel</button>
-        <button class="btn" onclick="exportPDF()">Export PDF</button>
+<div class="toolbar-right">
+       <input type="file" id="excelFile" accept=".xlsx,.xls" />
+<button class="btn secondary" data-hide-for="Admin,Viewer" onclick="openImportModal('driver')">Import Excel</button>
+<button class="btn" data-hide-for="Admin,Viewer" onclick="exportExcel()">📤 Export Excel</button>
+      
+        <button class="btn"data-hide-for="Admin,Viewer" onclick="exportPDF()">Export PDF</button>
       </div>
+</div>
       <div class="card" id="addCard">
         <h3>Add Driver/Operator</h3>
         <div class="grid grid-4">
@@ -1162,7 +1245,8 @@ input:focus {
           <input id="remarks" placeholder="Remarks" />
           <button class="btn" onclick="addEntry()">Add</button>
         </div>
-      </div>
+      </div>  
+
 
 <p style="color:#2563eb; font-weight:600; margin:8px 0;">
   💡 Tip: Right-click a row to open Driver/Operator Logs
@@ -1190,13 +1274,18 @@ input:focus {
           <tbody id="tbody"></tbody>
         </table>
       </div>
-      <div class="pagination">
-        <button class="page-btn" onclick="gotoPage(1)">⏮ First</button>
-        <button id="prevBtn" class="page-btn" onclick="gotoPage(state.page-1)">◀ Prev</button>
-        <span id="pageInfo"></span>
-        <button id="nextBtn" class="page-btn" onclick="gotoPage(state.page+1)">Next ▶</button>
-        <button class="page-btn" onclick="gotoPage(state.totalPages)">Last ⏭</button>
-      </div>
+ <div class="pagination">
+    Rows/page:
+    <select onchange="state.driverPageSize=parseInt(this.value); state.driverLocalPage=1; renderTablePage();">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+    </select>
+    <button class="page-btn" onclick="fetchDrivers(null)">⏮ First</button>
+    <button class="page-btn" onclick="prevDriverPage()">◀ Prev</button> 
+    <span id="pageInfo">Loading...</span>
+    <button class="page-btn" onclick="nextDriverPage()">Next ▶</button>
+</div>
     </section>
 
 <!-- Project Section -->
@@ -1204,6 +1293,7 @@ input:focus {
 <section id="projectsSection" class="section" style="display:none">
   <h2>Projects List</h2>
   <div class="toolbar card">
+<div class="toolbar-left">
     <input id="projSearch" placeholder="Search Projects..." oninput="applyProjFilters()" />
     <select id="fProjStatus" onchange="applyProjFilters()">
       <option value="">All Status</option>
@@ -1211,16 +1301,13 @@ input:focus {
       <option>Inactive</option>
       <option>On Hold</option>
     </select>
-    <span class="page-size">Rows/page:
-      <select id="projPageSize" onchange="applyProjFilters()">
-        <option>10</option><option>20</option><option>50</option>
-      </select>
-    </span>
+ </div>
+<div class="toolbar-right">
     <input type="file" id="projExcelFile" accept=".xlsx,.xls" style="display:none" />
-    <button class="btn secondary" onclick="document.getElementById('projExcelFile').click()">Import Excel</button>
-    <button class="btn" onclick="exportProjExcel()">Export Excel</button>
+    <button class="btn secondary"data-hide-for="Admin,Viewer" onclick="document.getElementById('projExcelFile').click()">Import Excel</button>
+    <button class="btn" onclick="exportProjExcel()">📤 Export Excel</button>
   </div>
-
+</div>
   <div class="card" id="addProjCard">
     <h3>Add Project</h3>
     <div class="grid grid-4">
@@ -1300,10 +1387,16 @@ input:focus {
   </div>
   
   <div class="pagination">
+    <span class="page-size">Rows/page:
+      <select id="projPageSize" onchange="applyProjFilters()">
+        <option>10</option><option>20</option><option>50</option>
+      </select>
+    </span>
     <button class="page-btn" onclick="gotoProjPage(1)">⏮ First</button>
     <button id="prevProjBtn" class="page-btn" onclick="gotoProjPage(state.projPage-1)">◀ Prev</button>
     <span id="projPageInfo"></span>
     <button id="nextProjBtn" class="page-btn" onclick="gotoProjPage(state.projPage+1)">Next ▶</button>
+
   </div>
 </section>
 
@@ -1313,7 +1406,7 @@ input:focus {
 <section id="al6m" class="section" style="display:none">
   <h2>On Leave > 6 Months</h2>
   <div class="card">
-    <button class="btn" onclick="exportAL6mExcel()">Export Excel</button>
+    <button class="btn" onclick="exportAL6mExcel()">📤 Export Excel</button>
   </div>
   <div class="table-wrap">
     <table id="al6mTable">
@@ -1348,7 +1441,7 @@ input:focus {
     <p style="margin:0; font-weight:bold; color:#b91c1c;">
       ⚠️ Displaying Assets with Expired Registration or Expiring within 15 Days.
     </p>
-    <button class="btn" style="margin-left:auto;" onclick="exportRegReport()">Export Excel</button>
+    <button class="btn" style="margin-left:auto;" onclick="exportRegReport()">📤 Export Excel</button>
   </div>
   <div class="table-wrap">
     <table id="regReportTable">
@@ -1389,7 +1482,7 @@ input:focus {
     </div>
     
     <div class="toolbar-right">
-        <button class="btn" onclick="exportRenewalExcel()">Export Excel</button>
+        <button class="btn" onclick="exportRenewalExcel()">📤 Export Excel</button>
     </div>
   </div>
 
@@ -1410,11 +1503,6 @@ input:focus {
   </div>
 </section>
 
-
-<section id="reportLicExp" class="section" style="display:none">
-    <h2>License Expiry Report</h2>
-    <div class="card"><p>Feature coming soon...</p></div>
-</section>
 
     <!-- USERS -->
     <section id="users" class="section" style="display:none">
@@ -1501,6 +1589,7 @@ input:focus {
 <section id="undertaking" class="section" style="display:none">
   <div class="no-print" style="padding: 20px; text-align:right;">
     <button class="btn" onclick="window.print()">🖨️ Print Undertaking</button>
+<button class="btn secondary" onclick="saveUndertakingDigital()">💾 Save Signed Copy</button>
   </div>
 
   <div class="undertaking-paper">
@@ -1578,13 +1667,23 @@ input:focus {
       RECEIVED THE ABOVE VEHICLE IN GOOD CONDITION. I UNDERTAKE RESPONSIBILITY OF THE VEHICLE.
     </div>
 
-    <div class="ut-footer-row">
+<div class="ut-footer-row">
       <div class="ut-sig-box">
-        <div>SIGNATURE / دستخط</div>
-        <br><br>
-        <div>_______________________</div>
-        <div style="margin-top:5px;" id="ut_date_receive">Date: </div>
-      </div>
+  <div>SIGNATURE / دستخط</div>
+  
+  <div id="sig-container" style="position: relative; width: 200px; height: 100px; border: 1px solid #ccc; margin: 10px auto; background: #fff;">
+     <canvas id="sigCanvas" width="200" height="100" style="cursor: crosshair; touch-action: none;"></canvas>
+     <span id="sig-placeholder" style="position:absolute; top:40%; left:20%; color:#ccc; pointer-events:none;">Sign Here</span>
+  </div>
+
+  <div class="no-print" style="margin-bottom: 10px;">
+    <button class="btn secondary" style="padding: 2px 8px; font-size: 10px;" onclick="clearSignature()">Clear</button>
+  </div>
+  
+  <div style="margin-top:5px;" id="ut_date_receive">Date: </div>
+</div>
+
+
 <div class="ut-sig-box" style="border:none; text-align:left; width: 45%;">
   <div><strong>REMARKS:</strong></div>
   
@@ -1645,6 +1744,129 @@ input:focus {
   </div>
 </div>
 
+
+<div id="importModal" class="modal">
+  <div class="dialog" style="max-width: 500px; text-align: center;">
+    <h3 id="importModalTitle">Import Data</h3>
+    <p style="color:#64748b; margin-bottom: 20px;">
+      Please download the sample template, fill it with your data, and upload it below.
+    </p>
+
+    <div class="grid grid-2" style="gap: 15px;">
+      <div class="card" style="cursor: pointer; border: 1px dashed #2563eb;" onclick="downloadSampleTemplate()">
+        <div style="font-size: 30px;">📥</div>
+        <div style="font-weight: 600; color: #2563eb; margin-top: 5px;">Download Template</div>
+        <small style="color: #64748b;">.xlsx format</small>
+      </div>
+
+      <div class="card" style="cursor: pointer; border: 1px dashed #16a34a;" onclick="triggerFileSelect()">
+        <div style="font-size: 30px;">📤</div>
+        <div style="font-weight: 600; color: #16a34a; margin-top: 5px;">Upload File</div>
+        <small style="color: #64748b;" id="fileNameDisplay">Click to browse...</small>
+      </div>
+    </div>
+
+    <input type="file" id="universalFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileSelection(this)">
+
+    <div class="actions" style="margin-top: 20px; justify-content: center;">
+      <button class="btn warn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn" id="confirmImportBtn" onclick="processUniversalImport()" disabled style="opacity: 0.5;">Start Import</button>
+    </div>
+  </div>
+</div>
+
+
+<section id="reportActivity" class="section" style="display:none">
+  <h2>Activity & Custom Reports</h2>
+  
+  <div class="grid grid-2" style="align-items: flex-start;">
+    
+    <div class="card">
+      <h3>📥 Detailed History Export</h3>
+      <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
+        Search for a specific Asset or Driver to download their profile <b>AND</b> full history logs.
+      </p>
+      
+      <div style="margin-bottom:15px;">
+        <label>Select Type</label>
+        <select id="act_type" onchange="toggleActSearch()">
+          <option value="asset">Asset (Vehicle/Machine)</option>
+          <option value="driver">Driver/Operator</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:15px;">
+        <label>Search Entity</label>
+        <div class="search-dd" id="act_dd">
+          <div class="selected">Type to search...</div>
+          <div class="panel">
+            <input class="search-input" placeholder="Search..." oninput="filterDD('act_dd', document.getElementById('act_type').value)">
+            <div class="list"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="exportDetailedHistory()">
+        📄 Download Profile & Logs
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>📊 Bulk Snapshot Export</h3>
+      <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
+        Select multiple filters to download a list of current data. (Does not include history logs to save reads).
+      </p>
+
+      <div class="grid grid-2">
+        <div>
+           <label>Projects</label>
+           <div class="multi-select" id="ms_projects">
+             <div class="select-box" onclick="toggleMulti('ms_projects')">
+               <span class="text">Select Projects</span>
+               <span class="arrow">▼</span>
+             </div>
+             <div class="options-container" id="cont_projects"></div>
+           </div>
+        </div>
+
+        <div>
+           <label>Status</label>
+           <div class="multi-select" id="ms_status">
+             <div class="select-box" onclick="toggleMulti('ms_status')">
+               <span class="text">Select Status</span>
+               <span class="arrow">▼</span>
+             </div>
+             <div class="options-container">
+               <label class="option"><input type="checkbox" value="In operation"> In operation / Active</label>
+               <label class="option"><input type="checkbox" value="IDLE"> IDLE</label>
+               <label class="option"><input type="checkbox" value="Maintenance"> Maintenance</label>
+               <label class="option"><input type="checkbox" value="On Leave"> On Leave</label>
+               <label class="option"><input type="checkbox" value="Resigned"> Resigned</label>
+             </div>
+           </div>
+        </div>
+
+        <div>
+          <label>Data To Export</label>
+          <select id="ms_target">
+            <option value="assets">Assets List</option>
+            <option value="drivers">Drivers List</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; text-align:right;">
+        <button class="btn secondary" onclick="exportBulkSnapshot()">
+          📤 Export Filtered Data
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
 <script type="module">
 
 
@@ -1653,8 +1875,12 @@ input:focus {
 // Use 10.13.0 for EVERYTHING
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { 
-  getAuth, 
-  onAuthStateChanged 
+ getAuth, 
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+setPersistence,           
+  browserSessionPersistence 
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   initializeFirestore,
@@ -1693,7 +1919,13 @@ const firebaseConfig = {
 // Initialize App
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
+setPersistence(auth, browserSessionPersistence)
+  .then(() => {
+    console.log("Session persistence enabled");
+  })
+  .catch((error) => {
+    console.error("Persistence error:", error);
+  });
 // Initialize Firestore with consistent 10.13.0 cache settings
 const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
@@ -1713,14 +1945,40 @@ let needsRefresh = false;
   `;
   document.head.appendChild(s);
 })();
-function applyRoleUI(){
-  const role = (state.me?.role || '').toLowerCase();
-  const isViewer = role === 'viewer';
+function applyRoleUI() {
+  const role = (state.me?.role || 'Viewer'); // Default to Viewer if unknown
 
-  // Hide manual add form & import controls for viewers
- // $('#addCard')?.classList.toggle('hidden', isViewer);
-  $('#excelFile')?.classList.toggle('hidden', isViewer);
-  $('#btnImport')?.classList.toggle('hidden', isViewer);
+  // 1. Handle "User Management" Tab visibility
+  const usersNav = document.getElementById('nav-users');
+  if(usersNav) {
+      // Only SuperAdmin sees User Management
+      usersNav.style.display = (role === 'SuperAdmin') ? 'flex' : 'none';
+  }
+
+  // 2. Hide Elements based on role-sensitive tags
+  // This looks for any element with data-hide-for="Admin,Viewer"
+  const sensitiveElements = document.querySelectorAll('.role-sensitive, [data-hide-for]');
+  
+  sensitiveElements.forEach(el => {
+    const hiddenFor = el.dataset.hideFor || ""; // e.g., "Admin,Viewer"
+    if (hiddenFor.includes(role)) {
+      el.style.display = 'none'; // Hide it
+    } else {
+      // Restore default (flex for navs/buttons usually, block for cards)
+      el.style.display = el.tagName === 'BUTTON' || el.tagName === 'A' ? 'inline-block' : 'block'; 
+    }
+  });
+
+  // 3. Special Case: Viewers cannot see Add Forms
+  const addCards = ['addCard', 'addProjCard']; // IDs of your Add Forms
+  addCards.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = (role === 'Viewer') ? 'none' : 'block';
+  });
+  
+  // 4. Special Case: Asset "Add Asset" button in toolbar
+  const addAssetBtn = document.querySelector('button[onclick="openAssetModal()"]');
+  if(addAssetBtn) addAssetBtn.style.display = (role === 'Viewer') ? 'none' : 'inline-block';
 }
 
 /* ------------------------------ Globals ------------------------------ */
@@ -1734,32 +1992,49 @@ let unsubscribeDrivers = null;
 let unsubscribeUsers = null;
 let currentEditAssetId = null;
 
-
 const state = {
-  me: null,                           // {id, username, role}
-  drivers: [],                        // all drivers from DB
-  users: [],                          // all users from DB
-  filtered: [],                       // filtered drivers for table
-  page: 1,
-  pageSize: 10,
-  totalPages: 1,
-  editIndex: null,                    // index in drivers[]
-  editDocId: null,                    // firestore doc id being edited
-  annualLeaveOver6M: [],               // derived list for alerts/export
-projects: [],
-editProjDocId: null,
+  me: null,
+  
+  // --- ASSETS STATE ---
+  assets: [],             // Holds the current chunk of 50 from server
+  assetTotalCount: 0,     // Total in DB (for dashboard & pagination text)
+  assetLocalPage: 1,      // Local page (1, 2, 3...) within the chunk
+  assetPageSize: 10,      // Local rows per page (10, 20, 50)
+  assetChunkSize: 50,     // How many to fetch from server
+  lastAssetDoc: null,     // Firestore Cursor
+  assetPageStack: [],     // Stack for server history
+  
+  // --- DRIVERS STATE ---
+  drivers: [],            // Holds current chunk of 50
+  driverTotalCount: 0,
+  driverLocalPage: 1,
+  driverPageSize: 10,
+  driverChunkSize: 50,
+  lastDriverDoc: null,
+  driverPageStack: [],
+  
+  // --- OTHERS ---
+  users: [],
+  projects: [],
+  
+  // --- HELPERS ---
+  filteredAssets: [],     // For local filtering of assets
+  filtered: [],           // For local filtering of drivers
+  annualLeaveOver6M: [],  
+  
+  // --- EDIT TRACKING ---
+  editIndex: null,
+  editDocId: null,
+  editProjDocId: null,
+  
+  // --- PROJECT PAGINATION ---
   projFiltered: [],
   projPage: 1,
   projPageSize: 10,
-  projTotalPages: 1,
-assets: [],
-  filteredAssets: [],
-  assetPage: 1,
-  assetTotalPages: 1,
-lastDriverDoc: null, // For pagination
-  lastAssetDoc: null,  // For pagination
-  isSearching: false   // To toggle between realtime list and search results
+  projTotalPages: 1
 };
+// Make globally available
+window.state = state;
 
 // make state visible to inline onclick handlers
 window.state = state;
@@ -1795,41 +2070,185 @@ async function ensureDefaultSuperAdmin(){
 }
 
 /* -------------------------------- Login -------------------------------- */
-async function doLogin(){
-  const u = $('#u').value.trim();
-  const p = $('#p').value.trim();
-  if(!u || !p){ toast("Enter username and password"); return; }
+async function doLogin() {
+  const email = $('#u').value.trim(); // Change placeholder to "Email" in HTML
+  const password = $('#p').value.trim();
+  
+  if (!email || !password) { toast("Enter email and password"); return; }
 
-try {
-    showLoader();  // show overlay while checking credentials
-
-  // authenticate against Firestore (no hashing as requested)
-  const qSnap = await getDocs(query(collection(db, COLL_USERS), where("username","==",u), where("password","==",p)));
-  if(qSnap.empty){ toast("Invalid credentials"); return; }
-
-  const docRef = qSnap.docs[0];
-  state.me = { id: docRef.id, ...docRef.data() };
-  $('#loginWrap').style.display='none';
-  $('#app').style.display='flex';
-  $('#userLabel').textContent = `${state.me.username} (${state.me.role})`;
-  // Access control: show/hide Users tab
-  const usersNav = $('#nav-users');
-  if(state.me.role === 'SuperAdmin'){ usersNav.style.display = 'block'; }
-  else { usersNav.style.display = 'none'; }
-applyRoleUI();
-
-  await loadDrivers();  // attaches realtime listener + paints from cache
-await loadProjects();
- await loadUsers();    // attaches realtime listener if SuperAdmin
-  nav('dashboard');
-}  catch(err){
-    console.error("Login error:", err);
-    toast("❌ Login failed");
-  }
-  finally {
-    hideLoader();   // <--- always hide overlay, success or fail
+  showLoader();
+  try {
+    // This securely checks credentials with Google's servers
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    // Login successful - onAuthStateChanged will handle the UI switch
+  } catch (error) {
+    console.error("Login Failed", error);
+    toast("❌ Invalid Email or Password");
+    hideLoader();
   }
 }
+
+// REPLACE your current onAuthStateChanged with this:
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("✅ Auth Login Success:", user.email, "| UID:", user.uid);
+    
+    // Default fallback
+    let myRole = 'Viewer';
+    let myName = user.email;
+
+    // Fetch Role from DB
+    const userDocRef = doc(db, COLL_USERS, user.uid);
+    try {
+      const userSnap = await getDoc(userDocRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        console.log("✅ Database Profile Found:", data);
+        myRole = data.role || 'Viewer';
+        myName = data.username || user.email;
+      } else {
+        console.warn("⚠️ No Profile Found in DB for this UID. Defaulting to Viewer.");
+        console.warn("Make sure Document ID in 'users' collection matches:", user.uid);
+      }
+    } catch (error) {
+      console.error("❌ Error reading user profile:", error);
+    }
+
+    // Set State
+    state.me = { id: user.uid, email: user.email, username: myName, role: myRole };
+
+    // Update UI
+    $('#loginWrap').style.display = 'none';
+    $('#app').style.display = 'flex';
+    $('#userLabel').textContent = `${state.me.username} (${state.me.role})`;
+
+    // Show/Hide "Manage Users" tab
+    if (state.me.role === 'SuperAdmin') {
+      $('#nav-users').style.display = 'flex';
+    } else {
+      $('#nav-users').style.display = 'none';
+    }
+
+    applyRoleUI();
+    
+try {
+        await Promise.all([
+            // Load KPI counts immediately for Dashboard
+initCounters(),
+            // Load initial lists
+            loadProjects(),
+
+fetchAssets(null), 
+  fetchDrivers(null)
+        ]);
+            
+        if(state.me.role === 'SuperAdmin') loadUsers(); 
+        
+    } catch (e) {
+        console.error("Initial load error:", e);
+    } finally {
+        // ALWAYS hide loader, even if errors occur
+        hideLoader();
+        nav('dashboard');
+    }
+
+  } else {
+    doLogoutUI();
+    hideLoader(); // Ensure loader hides on logout too
+  }
+});
+
+function doLogoutUI() {
+  $('#app').style.display = 'none';
+  $('#loginWrap').style.display = 'flex';
+  $('#u').value = ''; 
+  $('#p').value = '';
+}
+
+
+
+let canvas, ctx, drawing = false;
+
+// Initialize Canvas on Load
+window.addEventListener('load', () => {
+  canvas = document.getElementById('sigCanvas');
+  ctx = canvas.getContext('2d');
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 2;
+
+  // Mouse Events
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mousemove', draw);
+  
+  // Touch Events (Mobile)
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+  canvas.addEventListener('touchend', (e) => { e.preventDefault(); stopDraw(); });
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+});
+
+function startDraw(e) {
+  drawing = true;
+  document.getElementById('sig-placeholder').style.display = 'none';
+  ctx.beginPath();
+  const rect = canvas.getBoundingClientRect();
+  ctx.moveTo((e.clientX - rect.left), (e.clientY - rect.top));
+}
+
+function stopDraw() {
+  drawing = false;
+  ctx.beginPath();
+}
+
+function draw(e) {
+  if (!drawing) return;
+  const rect = canvas.getBoundingClientRect();
+  ctx.lineTo((e.clientX - rect.left), (e.clientY - rect.top));
+  ctx.stroke();
+}
+
+window.clearSignature = function() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('sig-placeholder').style.display = 'block';
+};
+
+// Function to Save Undertaking with Signature
+window.saveUndertakingDigital = async function() {
+  if(!confirm("Save this signed undertaking to system?")) return;
+  
+  const sigData = canvas.toDataURL(); // Base64 string
+  
+  const payload = {
+    type: "UNDERTAKING",
+    assetNo: document.getElementById('ut_asset').textContent,
+    empId: document.getElementById('ut_empId').textContent,
+    receiverName: document.getElementById('ut_name').textContent,
+    signatureBase64: sigData,
+    date: new Date(),
+    remarks: document.getElementById('ut_remarks').value
+  };
+
+  try {
+    showLoader();
+    await addDoc(collection(db, "undertakings"), payload); // New Collection
+    toast("✅ Undertaking Saved Digitally!");
+  } catch(e) {
+    console.error(e);
+    toast("Error saving digital copy");
+  } finally {
+    hideLoader();
+  }
+};
+
+
+
+
+
+
+
+
+
+
 // Add this block anywhere in your <script> section
 document.addEventListener('keydown', function(event) {
   // Check if the Enter key was pressed
@@ -1842,18 +2261,37 @@ document.addEventListener('keydown', function(event) {
   }
 });
 
+window.togglePass = function() {
+  const p = document.getElementById('p');
+  const icon = document.getElementById('togglePassword');
+  if (p.type === 'password') {
+    p.type = 'text';
+    icon.textContent = '🔒'; // Icon changes to indicate "Hide"
+  } else {
+    p.type = 'password';
+    icon.textContent = '👁️'; // Icon changes to indicate "Show"
+  }
+};
 
+// Ensure Enter Key works (This replaces your existing event listener)
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    const loginWrap = document.getElementById('loginWrap');
+    // Check if login is visible
+    if (loginWrap && loginWrap.style.display !== 'none') {
+      event.preventDefault(); // Stop default form submission if any
+      doLogin();
+    }
+  }
+});
 
 function doLogout() {
-  if (unsubscribeDrivers) { unsubscribeDrivers(); unsubscribeDrivers = null; }
-  if (unsubscribeUsers) { unsubscribeUsers(); unsubscribeUsers = null; }
-  state.me = null;
-
-  $('#userLabel').textContent = '';
-  $('#app').style.display = 'none';
-  $('#loginWrap').style.display = 'flex';
-  $('#u').value = '';
-  $('#p').value = '';
+  signOut(auth).then(() => {
+    toast("Logged out");
+    // onAuthStateChanged will handle the UI
+  }).catch((error) => {
+    console.error(error);
+  });
 }
 
 /* ------------------------------ Button Bindings ------------------------------ */
@@ -1864,47 +2302,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
 /* --------------------------------- NAV --------------------------------- */
-function nav(id){
-  // 1. Hide all sections first
-  $$('.section').forEach(s => s.style.display = 'none');
-  
-  // 2. Remove 'active' class from all nav links
-  $$('.nav a').forEach(a => a.classList.remove('active'));
-
-  // 3. Show the requested section
-  const targetSection = $(`#${id}`);
-  if (targetSection) {
-    targetSection.style.display = 'block';
-  }
-
-  // 4. Highlight the nav link
-  const navLink = $(`#nav-${id}`);
-  if (navLink) {
-    navLink.classList.add('active');
-  }
-
-  // 5. Run section-specific loaders
-  if(id === 'dashboard') renderDashboard();
-  if(id === 'list'){
-    applyRoleUI();
-    applyFilters();
-  }
-  if(id === 'projectsSection'){
-    loadProjects(); 
-    applyProjFilters(); 
-  }
-  if(id === 'users') renderUsers();
-  if(id === 'al6m') renderAL6M();
-  
-  // FIXED: Check if element exists before setting textContent to avoid crash
-  if(id === 'undertaking') {
-    const dateEl = document.getElementById("undertakingDate");
-    if(dateEl) {
-        dateEl.textContent = new Date().toLocaleDateString();
-    }
-  }
-}
-window.nav = nav;
 /* -------------------------------- Undertaking -------------------------------- */
 function fillUndertakingFromData(data) {
   // 1. Clear previous
@@ -1935,18 +2332,34 @@ if (data.regExp) {
 
   document.getElementById('ut_km').textContent = '________'; 
 
+
+
+let projectDisplay = data.project || ''; // Default to name
+  
+  // Try to find the full project object
+  if (state.projects && data.project) {
+      // Check matching Name OR matching ID
+      const projObj = state.projects.find(p => 
+          p.p_name === data.project || p.p_id === data.project
+      ); 
+      if (projObj && projObj.p_id) {
+          // Format: "[ID] Name"
+          projectDisplay = `[${projObj.p_id}] ${projObj.p_name}`;
+      }
+  }
+document.getElementById('ut_proj').textContent = projectDisplay;
+
   // 3. Logic based on Status
   const isOperation = (data.status === 'In operation');
   const now = new Date();
   const dateStr = now.toLocaleDateString();
   const timeStr = now.toLocaleTimeString();
-
   if (isOperation) {
     // FILL RECEIVING (Assigned)
     document.getElementById('ut_name').textContent = data.userName || '';
     document.getElementById('ut_empId').textContent = data.empId || '';
     document.getElementById('ut_desig').textContent = data.designation || '';
-    document.getElementById('ut_proj').textContent = data.project || '';
+    document.getElementById('ut_proj').textContent = projectDisplay;
     document.getElementById('ut_contact').textContent = data.contact || '';
     document.getElementById('ut_date_receive').textContent = `Date: ${dateStr} Time: ${timeStr}`;
     document.getElementById('ut_name').textContent = data.userName; // Top right box
@@ -2089,36 +2502,39 @@ window.savePw = savePw;
 
 
 /* ------------------------------- Drivers -------------------------------- */
-async function loadDrivers() {
-  // ... existing cache logic (keep it if you want) ...
+window.fetchDrivers = async function(direction = null) {
+  showLoader();
+  try {
+    let q = collection(db, COLL_DRIVERS);
+    const term = document.getElementById('search').value.trim(); 
 
-  if (unsubscribeDrivers) unsubscribeDrivers();
+    if (term.length > 0) {
+       // Search by ID on Server
+       q = query(q, where('empId', '>=', term), where('empId', '<=', term + '\uf8ff'), limit(state.driverChunkSize));
+    } else {
+       let baseQuery = query(q, orderBy("createdAt", "desc"));
+       if (direction === 'next' && state.lastDriverDoc) {
+         state.driverPageStack.push(state.lastDriverDoc);
+         q = query(baseQuery, startAfter(state.lastDriverDoc), limit(state.driverChunkSize));
+       } else {
+         q = query(baseQuery, limit(state.driverChunkSize));
+         state.driverPageStack = [];
+       }
+    }
 
-  // Listen to the most recent 100 drivers/operators
-  const q = query(
-    collection(db, COLL_DRIVERS),
-    orderBy("createdAt", "desc"),
-    limit(100)
-  );
+    const snapshot = await getDocs(q);
+    state.drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if(!snapshot.empty) {
+      state.lastDriverDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
+    
+    state.driverLocalPage = 1;
+    applyFilters(); 
 
-  unsubscribeDrivers = onSnapshot(q, (snap) => {
-      const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      state.drivers = arr;
-      
-      deriveAnnualLeaveList();
-      updateDriverCache();
-      refreshAll();
-      
-      // Update Dashboard KPIs separately
-      updateDriverDashboardCounts();
-      
-      if (!snap.metadata.fromCache) {
-         setDataStatus("🔄 Live (Recent 100)", "#16a34a");
-      }
-    },
-    (err) => console.error("onSnapshot error:", err)
-  );
-}
+  } catch(e) { console.error(e); } finally { hideLoader(); }
+};
+
 
   //Lazy refresh: only if cache expired
   if (needsRefresh) {
@@ -2130,9 +2546,9 @@ async function loadDrivers() {
       return tb - ta;
     });
     state.drivers = arr;
-    deriveAnnualLeaveList();
+    
     updateDriverCache();
-    refreshAll();
+    
 	setDataStatus("✅ Fresh data", "#2563eb");  // blue
     console.log("✅ Cache refreshed after 24h");
   }
@@ -2163,11 +2579,12 @@ window.nav = function(id) {
   if(id === 'list') { applyRoleUI(); applyFilters(); }
   if(id === 'projectsSection') { loadProjects(); applyProjFilters(); }
   if(id === 'users') renderUsers();
-  if(id === 'al6m') renderAL6M();
+  if(id === 'al6m') fetchOverstayReport();
+  if(id === 'reportRegExp') fetchRegExpiryServer();
   if(id === 'undertaking') { /* ... */ }
-  
+  if(id === 'reportActivity') {initReportsUI();}
   // NEW REPORT LOADER
-  if(id === 'reportRegExp') renderRegExpiryReport();
+
 if(id === 'reportRegRenewal') {
      // Don't load data immediately. Just set default dates (e.g., this month)
      setRepDate('month');
@@ -2176,46 +2593,66 @@ if(id === 'reportRegRenewal') {
 
 // Registartion Expiry Function
 
-window.renderRegExpiryReport = function() {
+window.fetchRegExpiryServer = async function() {
+  showLoader();
   const tbody = document.getElementById('regReportBody');
-  tbody.innerHTML = '';
-  
-  const today = new Date();
-  const warningLimit = 15; // Days
+  tbody.innerHTML = '<tr><td colspan="7">Scanning database...</td></tr>';
 
-  const reportData = state.assets.filter(a => {
-    if(!a.regExp) return false; // Ignore if no date
-    const expDate = new Date(a.regExp);
-    const diffTime = expDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    // Filter: Expired OR Expiring within 15 days
-    return diffDays <= warningLimit;
-  });
+  try {
+    // Calculate date 15 days from now
+    const today = new Date();
+    const threshold = new Date();
+    threshold.setDate(today.getDate() + 15);
+    const thresholdStr = threshold.toISOString().slice(0, 10); // YYYY-MM-DD
 
-  reportData.sort((a,b) => new Date(a.regExp) - new Date(b.regExp)); // Sort by date ascending
+    // Query: Get assets where regExp is populated and less than threshold
+    // Note: Firestore string comparison works for ISO dates (YYYY-MM-DD)
+    const q = query(
+      collection(db, COLL_ASSETS), 
+      where("regExp", "<=", thresholdStr),
+      where("regExp", "!=", "") // Ensure not empty
+    );
 
-  reportData.forEach(a => {
-    const expDate = new Date(a.regExp);
-    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-    
-    let statusBadge = '';
-    if(diffDays < 0) statusBadge = `<span class="badge b-bad">Expired (${Math.abs(diffDays)} days ago)</span>`;
-    else statusBadge = `<span class="badge b-warn">Expiring in ${diffDays} days</span>`;
+    const snap = await getDocs(q);
+    const reportData = [];
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${a.vmNo || ''}</td>
-      <td>${a.assetNo || ''}</td>
-      <td>${a.project || ''}</td>
-      <td>${a.regNo || ''}</td>
-      <td style="font-weight:bold">${a.regExp || ''}</td>
-      <td>${diffDays}</td>
-      <td>${statusBadge}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    snap.forEach(doc => {
+      const a = doc.data();
+      const expDate = new Date(a.regExp);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      reportData.push({ ...a, diffDays });
+    });
+
+    // Render
+    tbody.innerHTML = '';
+    reportData.sort((a,b) => a.diffDays - b.diffDays);
+
+    reportData.forEach(a => {
+        let statusBadge = a.diffDays < 0 
+          ? `<span class="badge b-bad">Expired</span>` 
+          : `<span class="badge b-warn">${a.diffDays} Days Left</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${a.vmNo || ''}</td>
+          <td>${a.assetNo || ''}</td>
+          <td>${a.project || ''}</td>
+          <td>${a.regNo || ''}</td>
+          <td style="font-weight:bold">${a.regExp || ''}</td>
+          <td>${a.diffDays}</td>
+          <td>${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error(err);
+    alert("Error: Ensure you have created the Firestore Index for 'regExp'. Check console for link.");
+  } finally {
+    hideLoader();
+  }
 };
+
 
 window.exportRegReport = function() {
   // Simple Excel Export for the report
@@ -2360,46 +2797,86 @@ window.editAsset = function (assetId) {
 /* ===== Search Dropdown Core (GLOBAL) ===== */
 
 // This makes the function globally accessible to the 'oninput' in your HTML
+/* ===== Search Dropdown Core (GLOBAL) - FIXED ===== */
 window.filterDD = function(id, type) {
   const dd = document.getElementById(id);
-  const input = dd.querySelector('.search-input');
-  const panel = document.getElementById(id + 'List');
+  if (!dd) return; // Safety check
+
+  // 1. Find the input and the list container using CLASSES, not IDs
+  const input = dd.querySelector('input') || dd.querySelector('.search-input');
+  const panel = dd.querySelector('.list'); // This fixes the "null" error
+
+  if (!panel || !input) return;
+
   const term = input.value.toLowerCase();
   
+  // 2. Select the Data Source
   let list = [];
   if (type === 'user') list = state.users;
   else if (type === 'project') list = state.projects;
   else if (type === 'asset') list = state.assets;
+  // New: Handle driver search for reports
+  else if (type === 'driver') list = state.drivers; 
 
+  // 3. Filter Data
   const filtered = list.filter(item => {
-    const val = (type === 'project') ? item.name : (item.name || item.assetName || item.displayName || "");
+    // Handle different naming conventions (e.g. Asset uses 'vmNo', Driver uses 'name')
+    let val = "";
+    if(type === 'project') val = item.p_name || "";
+    else if(type === 'asset') val = (item.assetNo || "") + " " + (item.vmNo || ""); 
+    else if(type === 'driver') val = (item.name || "") + " " + (item.empId || "");
+    else val = item.name || item.username || ""; // Default
+
     return val.toLowerCase().includes(term);
   });
 
+  // 4. Render Results
   panel.innerHTML = '';
+  if(filtered.length === 0) {
+      panel.innerHTML = '<div class="item" style="color:#999; cursor:default;">No results found</div>';
+  }
+
   filtered.forEach(item => {
     const div = document.createElement('div');
     div.className = 'item';
     
-    // Determine display name based on type
-    let displayName = item.name || item.assetName || item.displayName || "";
-    div.textContent = displayName;
+    // Determine display text and value based on type
+    let display = "";
+    let value = "";
+
+    if(type === 'asset') {
+        display = `[${item.assetNo}] ${item.vmNo}`;
+        value = item.id;
+    } else if (type === 'driver') {
+        display = `[${item.empId}] ${item.name}`;
+        value = item.id;
+    } else if (type === 'project') {
+        display = item.p_name;
+        value = item.p_name; // Or p_id if preferred
+    } else {
+        display = item.name || item.username;
+        value = item.id;
+    }
+
+    div.textContent = display;
 
     div.onclick = () => {
-      // 1. Set the selected value
-      input.value = displayName;
-      dd.dataset.value = (type === 'project') ? item.name : item.id;
-      dd.classList.remove('open');
+      // Set the input text and the hidden data-value
+      input.value = display;
+      dd.dataset.value = value;
+      
+      // Hide the panel
+      dd.querySelector('.panel').style.display = 'none';
+      dd.querySelector('.selected').textContent = display;
 
-      // 2. AUTO-FILL LOGIC: If we are selecting a user in the Driver/Operator modal
-      if (id === 'uUserDD') {
-        performAutoFill(item);
-      }
+      // Handle Auto-Fill for Add Driver Modal (if applicable)
+      if (id === 'uUserDD') performAutoFill(item);
     };
     panel.appendChild(div);
   });
   
-  dd.classList.add('open');
+  // Ensure the panel is visible while typing
+  dd.querySelector('.panel').style.display = 'block';
 };
 
 // New Helper Function for Auto-fill
@@ -2412,6 +2889,7 @@ function performAutoFill(userItem) {
       pDD.dataset.value = userItem.project;
     }
   }
+// Helper: Converts "farrukh ishfaq" -> "Farrukh Ishfaq"
 
   // Fill Asset Details (Vehicle No and T-Code)
   const targetAssetId = userItem.assignedAsset || userItem.assetId;
@@ -2447,6 +2925,16 @@ document.addEventListener('click', (e) => {
     if (panel.style.display === 'block') panel.querySelector('input').focus();
   }
 });
+
+/**
+ * Global Utility: Converts "john doe" -> "John Doe"
+ */
+function toTitleCase(str) {
+  if (!str) return "";
+  return str.trim().toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+}
+window.toTitleCase = toTitleCase; // Explicitly attach to window for safety
+
 
 
 window.setDD = function(ddId, value, text) {
@@ -2565,6 +3053,13 @@ const data = {
     updatedAt: serverTimestamp()
   };
 
+
+if (status !== 'In operation' && !till) {
+    toast("Error: 'Till Date/Time' is required for " + status + " status.", "error");
+    document.getElementById('a_till').focus();
+    return; // Stop saving
+}
+
   // LOGIC: If Status is "In operation", SAVE user details.
   // If Status is anything else (returned), CLEAR user details.
   if (status === 'In operation') {
@@ -2676,7 +3171,8 @@ await addDoc(collection(db, COLL_ASSET_LOGS), {
           }
       }
     }
-
+fetchDrivers();
+fetchAssets();  
     // 7. CLEAN UP & REDIRECT
     resetAssetForm();
     closeAssetModal();
@@ -2804,9 +3300,17 @@ function renderProjTable() {
     ${p.status || p.p_status || 'N/A'}
   </span>
 </td>
+
       <td>
-        <button class="btn" onclick="editProject('${p.id}')">Edit</button>
-        <button class="btn warn" style="margin-left:5px" onclick="deleteProject('${p.id}')">Delete</button>
+        ${
+          state.me?.role === 'Viewer'
+            ? `<button class="btn" onclick="editProject('${p.id}')">Edit</button>`
+            : `
+              <button class="btn" onclick="editProject('${p.id}')">Edit</button>
+              <button class="btn warn" style="margin-left:5px" onclick="deleteProject('${p.id}')">Delete</button>
+
+            `
+        }
       </td>
     `;
     tbody.appendChild(tr);
@@ -2950,84 +3454,61 @@ function updateDriverFilterDropdown() {
 
   // Sort projects alphabetically and add them
   state.projects
-    .filter(p => p.status === 'Active') // Optional: Only show Active projects in filter
+   .filter(p => p.status === 'Active' || p.p_status === 'Active') // Optional: Only show Active projects in filter
     .sort((a, b) => (a.p_name || "").localeCompare(b.p_name || ""))
     .forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.p_name;
-      opt.textContent = p.p_name;
+const dispId = p.p_id ? `${p.p_id} - ` : '';
+      opt.textContent = `${dispId}${p.p_name}`;
       filterSelect.appendChild(opt);
     });
 
   // Restore previous value
-  filterSelect.value = currentFilterVal;
+ if (currentVal) filterSelect.value = currentVal;
 }
 // --- LISTEN FOR ASSETS ---
-function listenToAssets() {
-    const q = query(
-        collection(db, COLL_ASSETS),
-        orderBy("updatedAt", "desc"),
-        limit(100)
-    );
 
-    onSnapshot(q, (snapshot) => {
-        state.assets = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        // Ensure the search flag is off so it uses the loaded data
-        state.isSearching = false; 
-        
-        // Force count update and filter application
-        updateAssetDashboardCounts();
-        applyAssetFilters(); // This will call renderAssetTable()
-    }, (error) => {
-        console.error("Asset listener error:", error);
-    });
+async function initCounters() {
+  try {
+    const assetColl = collection(db, COLL_ASSETS);
+    const driverColl = collection(db, COLL_DRIVERS);
+    
+    const [aSnap, dSnap] = await Promise.all([
+      getCountFromServer(assetColl),
+      getCountFromServer(driverColl)
+    ]);
+    
+    state.assetTotalCount = aSnap.data().count;
+    state.driverTotalCount = dSnap.data().count;
+    
+    // Update Dashboard KPIs immediately
+const kpiAsset = document.getElementById('kpi_asset_total');
+    const kpiDriver = document.getElementById('kpi_driver_total');
+    if(kpiAsset) kpiAsset.textContent = state.assetTotalCount;
+    if(kpiDriver) kpiDriver.textContent = state.driverTotalCount;
+    
+  } catch(e) { console.error("Counter Init Error", e); }
 }
 
-/* --- applyAssetFilters --- */
-window.applyAssetFilters = async function() {
-  const term = (document.getElementById('assetSearch').value || '').trim().toLowerCase();
-  
-  // Get Dropdown Values
+
+window.applyAssetFilters = function() {
+  // We filter state.assets (the current server chunk)
   const fCat = document.getElementById('fAssetCat').value;
-  const fProj = document.getElementById('fAssetProject').value; // Ensure this ID matches your HTML
+  const fProj = document.getElementById('fAssetProject').value;
   const fStatus = document.getElementById('fAssetStatus').value;
-  
-  // 1. Client-Side Filtering (Default or if search term is empty)
-  // Note: If you want server-side search for ID/VM No, we can do that, 
-  // but let's first filter what we have in memory (state.assets) for speed.
-  
-  let sourceData = state.assets; // The 100 recent items loaded by listener
 
-  state.filteredAssets = sourceData.filter(a => {
-    // Text Search (Partial match on common fields)
-    const matchesTerm = !term || 
-      (a.vmNo||'').toLowerCase().includes(term) ||
-      (a.assetNo||'').toLowerCase().includes(term) ||
-      (a.project||'').toLowerCase().includes(term);
-
-    // Dropdown Filters
-    const matchesCat = !fCat || a.category === fCat;
-    
-    // For Project Filter: Check both Name and ID
-    // The dropdown usually returns p_id (if you updated it) or Name. 
-    // Let's assume the dropdown value is the ID.
-    const matchesProj = !fProj || a.projectId === fProj || a.project === fProj;
-    
-    const matchesStatus = !fStatus || a.status === fStatus;
-
-    return matchesTerm && matchesCat && matchesProj && matchesStatus;
+  state.filteredAssets = state.assets.filter(a => {
+    const mCat = !fCat || a.category === fCat;
+    const mProj = !fProj || a.projectId === fProj || a.project === fProj;
+    const mStat = !fStatus || a.status === fStatus;
+    return mCat && mProj && mStat;
   });
 
-  // Reset to Page 1
-  state.assetPage = 1;
-  state.assetTotalPages = Math.max(1, Math.ceil(state.filteredAssets.length / state.pageSize));
-  
+  state.assetLocalPage = 1; 
   renderAssetTable();
 };
+
 /* --- ADD: Pagination Control for Assets --- */
 // Add these functions to handle Next/Prev for Assets
 window.changeAssetPage = function(delta) {
@@ -3042,11 +3523,21 @@ function updateAssetProjectFilter() {
   const sel = document.getElementById('fAssetProject');
   if(!sel) return;
   
+  const currentVal = sel.value;
   sel.innerHTML = '<option value="">All Projects</option>';
+  
   state.projects.forEach(p => {
-    // Value is ID, Text is Name
-    sel.innerHTML += `<option value="${p.p_id}">${p.p_name}</option>`;
+    const opt = document.createElement('option');
+    // Assuming Asset filter checks ID (based on your applyAssetFilters logic)
+    opt.value = p.p_id; 
+    
+    // Display format: "ID - Name"
+    const dispId = p.p_id ? `${p.p_id} - ` : '';
+    opt.textContent = `${dispId}${p.p_name}`;
+    
+    sel.appendChild(opt);
   });
+   if (currentVal) sel.value = currentVal;
 }
 
 // Add this to update the page numbers at the bottom
@@ -3112,71 +3603,107 @@ resetAssetForm();
 
 async function updateAssetDashboardCounts() {
   try {
-    // This costs 1/1000th of a read per document. Very cheap.
+    // 1. Total Assets
     const coll = collection(db, COLL_ASSETS);
-    const snap = await getCountFromServer(coll);
-    const total = snap.data().count;
+    const snapTotal = await getCountFromServer(coll);
     
-    // Update the HTML element
-    document.getElementById('kpi_asset_total').textContent = total;
-    
-    // Note: For detailed breakdown (Active vs Idle) without reading data, 
-    // you'd ideally need a "Stats" document. 
-    // For now, we will show "Total" accurately, and subgroups based on loaded data 
-    // or you can run specific count queries for them too:
-    
+    // 2. Status: In Operation
     const qOp = query(coll, where("status", "==", "In operation"));
     const snapOp = await getCountFromServer(qOp);
-    document.getElementById('kpi_asset_sub').textContent = `Op: ${snapOp.data().count} | (Est. others)`;
+
+    // 3. Status: IDLE
+    const qIdle = query(coll, where("status", "==", "IDLE"));
+    const snapIdle = await getCountFromServer(qIdle);
+
+    // Update UI
+    const total = snapTotal.data().count;
+    const op = snapOp.data().count;
+    const idle = snapIdle.data().count;
+
+    document.getElementById('kpi_asset_total').textContent = total;
+    document.getElementById('kpi_asset_sub').textContent = `Op: ${op} | Idle: ${idle}`;
     
-  } catch(e) { console.error("Count error", e); }
+  } catch(e) { console.error("Asset Count Error", e); }
 }
+
+
+// fetch Assets
+window.fetchAssets = async function(direction = null) {
+  showLoader();
+  try {
+    let q = collection(db, COLL_ASSETS);
+    const searchVal = document.getElementById('assetSearch').value.trim();
+
+    // 1. SERVER SEARCH (Overrides Pagination)
+    if (searchVal.length > 0) {
+      // NOTE: Firestore search is case-sensitive and prefix-based by default
+      q = query(q, 
+           where('assetNo', '>=', searchVal), 
+           where('assetNo', '<=', searchVal + '\uf8ff'),
+           limit(state.assetChunkSize));
+    } 
+    // 2. SERVER PAGINATION
+    else {
+      let baseQuery = query(q, orderBy("updatedAt", "desc")); // Order by newest
+      
+      if (direction === 'next' && state.lastAssetDoc) {
+        state.assetPageStack.push(state.lastAssetDoc);
+        q = query(baseQuery, startAfter(state.lastAssetDoc), limit(state.assetChunkSize));
+      } else {
+        // First Page / Reset
+        q = query(baseQuery, limit(state.assetChunkSize));
+        state.assetPageStack = [];
+      }
+    }
+
+    const snapshot = await getDocs(q);
+    state.assets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Update Cursors
+    if (!snapshot.empty) {
+      state.lastAssetDoc = snapshot.docs[snapshot.docs.length - 1];
+    }
+
+    // Reset Local Page View to 1
+    state.assetLocalPage = 1;
+    
+    // Apply Local Filters (Dropdowns) to this new chunk
+    applyAssetFilters(); 
+
+  } catch (err) {
+    console.error("Asset Fetch Error:", err);
+    toast("Error fetching assets");
+  } finally {
+    hideLoader();
+  }
+};
+
 
 async function updateDriverDashboardCounts() {
+  try {
     const coll = collection(db, COLL_DRIVERS);
-    const snap = await getCountFromServer(coll);
-    document.getElementById('kpi_driver_total').textContent = snap.data().count;
+    
+    // Total
+    const snapTotal = await getCountFromServer(coll);
+    
+    // Active
+    const qActive = query(coll, where("status", "==", "Active"));
+    const snapActive = await getCountFromServer(qActive);
+
+    // Leave
+    const qLeave = query(coll, where("status", "==", "On Leave"));
+    const snapLeave = await getCountFromServer(qLeave);
+
+    document.getElementById('kpi_driver_total').textContent = snapTotal.data().count;
+    document.getElementById('kpi_driver_sub').textContent = `Active: ${snapActive.data().count} | Leave: ${snapLeave.data().count}`;
+
+  } catch(e) { console.error("Driver Count Error", e); }
 }
 
 
 
 
 
-function deriveAnnualLeaveList(){
-  state.annualLeaveOver6M = state.drivers.filter(d => {
-    if(d.status !== "On Leave") return false;
-
-    const leaveSince = d.leaveSince ? new Date(d.leaveSince) : null; // "Leave Since/ Resigned Date"
-    const leaveTill  = d.leaveTill ? new Date(d.leaveTill) : null;
-    const today = new Date();
-const grace = 10 * 24 * 60 * 60 * 1000; // 10 days in ms
-
-    let category = "";
-    let overstayDays = 0;
-
-    // 1) If > 6 months since leaveSince
-    if (leaveSince && (today - leaveSince) > (180*24*60*60*1000)) {
-      category = "Leave > 6 Months";
-      if (leaveTill) {
-        overstayDays = Math.max(0, Math.floor((today - leaveTill) / (1000*60*60*24)));
-      }
-    }
-    // 2) Otherwise, if overstayed beyond leaveTill
- else if (leaveTill && today > new Date(leaveTill.getTime() + grace)) {
-        category = "Overstay";
-        overstayDays = Math.floor(
-          (today - leaveTill.getTime()) / (1000 * 60 * 60 * 24)
-        );
-      }
-    else {
-      return false; // Not included
-    }
-
-    d.category = category;
-    d.overstayDays = overstayDays;
-    return true;
-  });
-}
 
 
 function updateDriverCache(){
@@ -3186,10 +3713,7 @@ function updateDriverCache(){
   }));
 }
 
-function refreshAll(){
-  renderDashboard();
-  applyFilters();
-}
+
 
 
 
@@ -3260,7 +3784,7 @@ async function addEntry() {
 
     // 1. Safely grab values using Optional Chaining (?.) to prevent "null" errors
     const empId = $('#empId')?.value.trim();
-    const name = $('#name')?.value.trim();
+    const name = toTitleCase($('#name')?.value.trim());
     const designation = $('#designation')?.value;
     const project = document.getElementById('driverProjectDD').dataset.value || "";
     const vehicleNo = $('#vehicleNo')?.value.trim();
@@ -3461,10 +3985,10 @@ if (prev?.status !== status) {
   const idx = state.drivers.findIndex(d => d.id === id);
   if (idx !== -1) state.drivers[idx] = { ...state.drivers[idx], ...rec };
 
-  deriveAnnualLeaveList();
+  
   updateDriverCache();
   renderAL6M();
-  refreshAll();
+  
 
   closeEdit();
   toast('Driver updated');
@@ -3609,9 +4133,9 @@ async function removeRow(ix) {
 
     // Update Local State
     state.drivers = state.drivers.filter(item => item.id !== d.id);
-    deriveAnnualLeaveList();
+    
     updateDriverCache();
-    refreshAll();
+   
 
     toast("✅ Driver and Logs deleted.");
   } catch (err) {
@@ -3625,33 +4149,44 @@ window.removeRow = removeRow;
 
 function handleAssetStatusChange() {
   const status = document.getElementById('a_status').value;
-  //const fromEl = document.getElementById('a_from');
   const tillEl = document.getElementById('a_till');
   
-  // New elements to reset
+  // Driver elements
   const driverStatusEl = document.getElementById('a_driverStatus');
   const driverLeaveTillEl = document.getElementById('a_driverLeaveTill');
 
+  // --- 1. ASSET LOGIC: Handle "In Operation" vs Others ---
   if (status === 'In operation') {
-    // 1. Handle Asset Dates
     tillEl.value = '';
     tillEl.disabled = true;
     tillEl.style.background = '#f1f5f9';
     tillEl.placeholder = "N/A (In Operation)";
 
-    // 2. Reset Driver Status Section
-    if (driverStatusEl) driverStatusEl.value = 'Active'; // Resets to "Keep Driver Active"
-    if (driverLeaveTillEl) {
-      driverLeaveTillEl.value = '';
-      driverLeaveTillEl.type = 'text'; // Returns to text placeholder mode
-      driverLeaveTillEl.placeholder = "📅 Manual: Leave Till";
-    }
-    
+    // Force Driver to Active if Asset is in operation
+    if (driverStatusEl) driverStatusEl.value = 'Active';
   } else {
-    // Re-enable Till Date if status is anything else (IDLE, Maintenance, etc.)
+    // Re-enable Till Date if status is IDLE, Maintenance, Breakdown, etc.
     tillEl.disabled = false;
-    tillEl.style.background = ''; 
+    tillEl.style.background = '#fff'; 
     tillEl.placeholder = "📅 Till Date/Time";
+  }
+
+  // --- 2. DRIVER LOGIC: Toggle Leave Till Date (New Requirement) ---
+  if (driverStatusEl && driverLeaveTillEl) {
+    const drvStatus = driverStatusEl.value;
+
+    if (drvStatus === 'On Leave') {
+      // Enable only for "On Leave"
+      driverLeaveTillEl.disabled = false;
+      driverLeaveTillEl.style.background = '#fff';
+      driverLeaveTillEl.placeholder = "📅 Select Date";
+    } else {
+      // Disable for IDLE, Resign, Transfer, or Active
+      driverLeaveTillEl.value = '';
+      driverLeaveTillEl.disabled = true;
+      driverLeaveTillEl.style.background = '#f1f5f9';
+      driverLeaveTillEl.placeholder = "N/A (Only for Leave End Date)";
+    }
   }
 }
 
@@ -3659,165 +4194,180 @@ window.handleAssetStatusChange= handleAssetStatusChange;
 
 /* ----------------------- hard refresh -------------------- */
 
-window.hardRefresh = async function(){
-  localStorage.removeItem("driversCache");
-  // Force one-time server fetch (snapshot will also refresh anyway)
-  const snap = await getDocs(collection(db, COLL_DRIVERS));
-  const arr = snap.docs.map(d=>({ id: d.id, ...d.data() }));
-  arr.sort((a,b)=>{
-    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-    return tb - ta;
-  });
-  state.drivers = arr;
-  deriveAnnualLeaveList();
-  updateDriverCache();
-  refreshAll();
-  toast('Data refreshed from server');
-};
+
 
 /* ----------------------- Filters, Table & Pagination -------------------- */
-function applyFilters() {
-  const term = ($('#search')?.value || '').toLowerCase();
-  const desg = $('#fDesignation')?.value || '';
-  const proj = $('#fProject')?.value || ''; // Get the project filter value
-  const stat = $('#fStatus')?.value || '';
+window.applyFilters = function() {
+  // Filter state.drivers locally
+  const term = (document.getElementById('search').value || '').toLowerCase();
+  const fDesig = document.getElementById('fDesignation').value;
+  const fProj = document.getElementById('fProject').value;
+  const fStat = document.getElementById('fStatus').value;
 
   state.filtered = state.drivers.filter(d => {
-const pObj = state.projects.find(p => p.p_name === d.project);
-    const pId = pObj ? pObj.p_id.toLowerCase() : '';
-    const mSearch = (d.name||'').toLowerCase().includes(term) || (d.empId||'').toLowerCase().includes(term);
-    const mDesg   = !desg || d.designation === desg;
-    const mProj   = !proj || d.project === proj; // Match the project field
-    const mStat   = !stat || d.status === stat;
-    return mSearch && mDesg && mProj && mStat;
+    const mSearch = !term || (d.name||'').toLowerCase().includes(term) || (d.empId||'').toLowerCase().includes(term);
+    const mDesig = !fDesig || d.designation === fDesig;
+    const mProj = !fProj || d.project === fProj;
+    const mStat = !fStat || d.status === fStat;
+    return mSearch && mDesig && mProj && mStat;
   });
 
-  state.page = 1;
-  state.totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+  state.driverLocalPage = 1;
   renderTablePage();
-}
-window.applyFilters = applyFilters;
-
-function gotoPage(p){
-  state.page = Math.min(Math.max(1, p), state.totalPages);
-  renderTablePage();
-}
-
-window.gotoPage = gotoPage;
+};
 
 
-function renderTablePage() {
-  const start = (state.page - 1) * state.pageSize;
-  const rows = state.filtered.slice(start, start + state.pageSize);
-  const tbody = $('#tbody');
+
+
+window.renderTablePage = function() {
+  const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
+  
+  const start = (state.driverLocalPage - 1) * state.driverPageSize;
+  const end = start + state.driverPageSize;
+  const pageData = state.filtered.slice(start, end);
 
-  rows.forEach((d, idx) => {
-    // 1. Move the lookup INSIDE the loop so 'd' is defined
-    const projectObj = state.projects.find(proj => proj.p_name === d.project);
+  pageData.forEach((d, idx) => {
+    // ... [KEEP YOUR EXISTING DRIVER ROW CODE] ...
+ const projectObj = state.projects.find(proj => proj.p_name === d.project);
     const projectDisplay = projectObj ? `${d.project} (${projectObj.p_id})` : (d.project || 'N/A');
 
-    const gi = start + idx;
+    const gi = idx; // simple index for edit
     const tr = document.createElement('tr');
+    tr.oncontextmenu = (e) => { e.preventDefault(); openLogs(d.id, d.name); };
+let actionButtons = `<button class="page-btn" onclick="openEdit(${gi})">Edit</button>`;
     
-    tr.oncontextmenu = (e) => {
-      e.preventDefault(); 
-      openLogs(d.id, d.name);
-    };
+    if (state.me && state.me.role === 'SuperAdmin') {
+       // Passes 'gi' (index) to removeRow, similar to your existing logic
+       actionButtons += ` <button class="page-btn warn" onclick="removeRow(${gi})">Delete</button>`;
+    }
 
     tr.innerHTML = `
-      <td>${d.empId || ''}</td>
-      <td>${d.name || ''}</td>
-      <td>${d.designation || ''}</td>
-      <td>${projectDisplay}</td> <td>${d.vehicleNo || ''}</td>
-      <td>${d.assetCode || ''}</td>
-      <td>${d.contact || ''}</td>
-      <td>${d.joiningDate || ''}</td>
-      <td>${d.leaveSince || ''}</td>
-      <td>${d.leaveTill || ''}</td>
-      <td>${d.status || ''}</td>
-      <td>${d.remarks || ''}</td>
-      <td>
-        ${
-          state.me?.role === 'Viewer'
-            ? `<button class="page-btn" onclick="openEdit(${gi})">Edit</button>`
-            : `
-              <button class="page-btn" onclick="openEdit(${gi})">Edit</button>
-              <button class="btn warn" style="padding: 2px 8px;" onclick="removeRow(${gi})">Delete</button>
-            `
-        }
-      </td>
-    `;
+      <td>${d.empId||''}</td>
+      <td>${d.name||''}</td>
+      <td>${d.designation||''}</td>
+      <td>${projectDisplay}</td> 
+      <td>${d.vehicleNo||''}</td>
+      <td>${d.assetCode||''}</td>
+      <td>${d.contact||''}</td>
+      <td>${d.joiningDate||''}</td>
+      <td>${d.leaveSince||''}</td>
+      <td>${d.leaveTill||''}</td>
+      <td>${d.status||''}</td>
+      <td>${d.remarks||''}</td>
+     <td>${actionButtons}</td>`;
     tbody.appendChild(tr);
   });
-
-  // Update pagination info
-  $('#pageInfo').textContent = `Page ${state.page} of ${state.totalPages} — ${state.filtered.length} rows`;
-
-  // Enable/disable buttons
-  $('#prevBtn').disabled = state.page <= 1;
-  $('#nextBtn').disabled = state.page >= state.totalPages;
+  
+  // Update Info
+  const serverOffset = (state.driverPageStack.length) * state.driverChunkSize;
+  const localStart = serverOffset + ((state.driverLocalPage - 1) * state.driverPageSize) + 1;
+  const localEnd = Math.min(localStart + state.driverPageSize - 1, serverOffset + state.filtered.length);
+  document.getElementById('pageInfo').textContent = `Showing ${localStart}-${localEnd} (Total: ${state.driverTotalCount})`;
 }
+window.nextDriverPage = function() {
+  const maxLocal = Math.ceil(state.filtered.length / state.driverPageSize);
+  if (state.driverLocalPage < maxLocal) {
+    state.driverLocalPage++;
+    renderTablePage();
+  } else {
+    fetchDrivers('next');
+  }
+};
+window.prevDriverPage = function() {
+    if (state.driverLocalPage > 1) { state.driverLocalPage--; renderTablePage(); }
+};
+/* ------------------------------ Render Asset Page --------------------------- */
 
 window.renderAssetTable = function() {
   const tbody = document.getElementById('assetTbody');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
-  // Get current page slice from filtered assets
-  const start = (state.assetPage - 1) * state.pageSize;
-  const end = start + state.pageSize;
+  // --- LOCAL PAGINATION SLICING ---
+  const start = (state.assetLocalPage - 1) * state.assetPageSize;
+  const end = start + state.assetPageSize;
   const pageData = state.filteredAssets.slice(start, end);
-console.log("Rendering assets:", pageData.length);
+
   pageData.forEach(asset => {
-    // LOOKUP: Find the project details from the state.projects list
-   const projectObj = state.projects.find(p => p.p_id === asset.projectId);
-    
-    // FORMAT: Show "Project Name (ID)" or just Name if ID isn't found
- const projectDisplay = projectObj 
-    ? `${projectObj.p_name} (${projectObj.p_id})` 
-    : (asset.project || '-');
-let userDisplay = '—';
-    if (asset.empId) {
-      // Look up the full driver object to get the name
-      const driver = state.drivers.find(d => d.empId === asset.empId);
-      const driverName = driver ? driver.name : (asset.name || ''); 
-      userDisplay = `${asset.empId} - ${driverName}`;
-    }
+ 
+     const projectObj = state.projects.find(p => p.p_id === asset.projectId);
+    const projectDisplay = projectObj 
+      ? `${projectObj.p_name} (${projectObj.p_id})` 
+      : (asset.project || '-');
+
+    const empId = asset.empId || '';
+    const userName = asset.userName || '';
+    const userDisplay = (empId || userName) ? `${empId} - ${userName}` : '—';
 
     const tr = document.createElement('tr');
-tr.oncontextmenu = (e) => {
-      e.preventDefault(); 
-      openAssetLogs(asset.id, asset.assetNo); // Call new function
-    };
+    tr.oncontextmenu = (e) => { e.preventDefault(); openAssetLogs(asset.id, asset.assetNo); };
+
     tr.innerHTML = `
-<td>${asset.vmNo || ''}</td>
+      <td>${asset.vmNo || ''}</td>
       <td>${asset.assetNo || ''}</td>
-<td>${asset.brand || '-'}</td>
+      <td>${asset.brand || '-'}</td>
       <td>${asset.category || ''}</td>
       <td style="font-weight:500;">${userDisplay}</td> 
-	<td>${asset.designation || ''}</td>
+      <td>${asset.designation || ''}</td>
       <td>${asset.contact || ''}</td>
       <td style="font-weight:600; color:var(--brand);">${projectDisplay}</td>
       <td>${asset.regNo || ''}</td>
       <td>${asset.regExp || ''}</td>
       <td>${asset.from || ''}</td>
       <td>${asset.till || ''}</td>
-<td><span class="badge">${asset.status || 'N/A'}</span></td>
-  <td>${asset.shift || '-'}</td>
+     <td><span class="badge">${asset.status || 'N/A'}</span></td>
+
+      <td>${asset.shift || '-'}</td>
       <td>${asset.remarks || ''}</td>
       <td>
-        <button class="btn info" onclick="editAsset('${asset.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
-        <button class="btn warn" onclick="deleteAsset('${asset.id}')" style="padding:4px 8px; font-size:12px;">Del</button>
-      </td>
-    `;
+         ${state.me?.role === 'Viewer' 
+           ? `<button class="btn info" onclick="editAsset('${asset.id}')" style="padding:4px 8px; font-size:12px;">View</button>` 
+           : `<button class="btn info" onclick="editAsset('${asset.id}')" style="padding:4px 8px; font-size:12px;">Edit</button>
+              <button class="btn warn" onclick="deleteAsset('${asset.id}')" style="padding:4px 8px; font-size:12px;">Del</button>`}
+      </td>`;
     tbody.appendChild(tr);
   });
+  
+  updateAssetPaginationUI();
+};
+window.nextAssetPage = function() {
+  const totalInChunk = state.filteredAssets.length;
+  const maxLocalPage = Math.ceil(totalInChunk / state.assetPageSize);
 
-  // Update Pagination Info for Assets
-  updateAssetPagination();
+  if (state.assetLocalPage < maxLocalPage) {
+    // 1. Move to next local page
+    state.assetLocalPage++;
+    renderAssetTable();
+  } else {
+    // 2. If at end of chunk, Fetch NEXT CHUNK from Server
+    // Only if we haven't reached the absolute total
+    fetchAssets('next');
+  }
 };
 
+window.prevAssetPage = function() {
+  if (state.assetLocalPage > 1) {
+    state.assetLocalPage--;
+    renderAssetTable();
+  } else {
+    // Optional: Logic to go back to previous server chunk (Requires keeping stack history)
+    // For now, "First" is the reset.
+    toast("At start of current loaded data. Click 'First' to reset.");
+  }
+};
+
+function updateAssetPaginationUI() {
+  const el = document.getElementById('assetPageInfo');
+  if(!el) return;
+  
+  // Calculate "Global" approximate numbers for display
+  const serverOffset = (state.assetPageStack.length) * state.assetChunkSize;
+  const localStart = serverOffset + ((state.assetLocalPage - 1) * state.assetPageSize) + 1;
+  const localEnd = Math.min(localStart + state.assetPageSize - 1, serverOffset + state.filteredAssets.length);
+  
+  el.innerHTML = `Showing <b>${localStart}-${localEnd}</b> (Total: ${state.assetTotalCount})`;
+}
 
 /* ------------------------------ Open Asset Logs --------------------------- */
 
@@ -3893,7 +4443,7 @@ window.importExcel = function(){
       // "Employee ID","Proper Name","Designation","Project","Plate No","Asset No","Contact Number","Joining Date","Driver Status","Remarks"
       for(const r of rows){
         const empId  = r['Employee ID'] || '';
-        const name   = r['Proper Name'] || '';
+        const name   = toTitleCase(r['Proper Name'] || '');
         const designation = r['Designation'] || '';
         const project = r['Project'] || '';
         const vehicleNo= r['Vehicle No'] || '';
@@ -3973,6 +4523,57 @@ window.exportPDF = function(){
   });
   doc.save("touchkeys.pdf");
 };
+/* -------------------------------- Leave Overstay Function ----------------------------- */
+
+window.fetchOverstayReport = async function() {
+  showLoader();
+  try {
+    const tbody = document.getElementById('al6mBody');
+    tbody.innerHTML = '<tr><td colspan="14">Loading full data from server...</td></tr>';
+
+    // 1. Fetch ALL drivers who are currently 'On Leave'
+    const q = query(collection(db, COLL_DRIVERS), where("status", "==", "On Leave"));
+    const snap = await getDocs(q);
+
+    state.annualLeaveOver6M = []; // Reset global list
+    const today = new Date();
+
+    snap.forEach(doc => {
+      const d = { id: doc.id, ...doc.data() };
+      
+      const leaveSince = d.leaveSince ? new Date(d.leaveSince) : null;
+      const leaveTill = d.leaveTill ? new Date(d.leaveTill) : null;
+      let category = "";
+      let overstayDays = 0;
+
+      // Logic: Check if > 6 months
+      if (leaveSince && (today - leaveSince) > (180 * 24 * 60 * 60 * 1000)) {
+        category = "Leave > 6 Months";
+      }
+      // Logic: Check if Overstayed (past Leave Till date)
+      else if (leaveTill && today > leaveTill) {
+        category = "Overstayed";
+        overstayDays = Math.floor((today - leaveTill) / (1000 * 60 * 60 * 24));
+      }
+
+      if (category) {
+        d.category = category;
+        d.overstayDays = overstayDays;
+        state.annualLeaveOver6M.push(d);
+      }
+    });
+
+    renderAL6M(); // Call your existing render function
+    toast(`Report Generated: ${state.annualLeaveOver6M.length} drivers found.`);
+    
+  } catch (err) {
+    console.error(err);
+    toast("Error generating report");
+  } finally {
+    hideLoader();
+  }
+};
+
 
 // Export On Leave > 6 months to Excel
 window.exportAL6mExcel = function(){
@@ -4109,54 +4710,6 @@ function formatDateTime(v) {
 }
 
 /* --- IMPORT EXCEL FUNCTION --- */
-window.importAssetExcel = function() {
-  // Create hidden input if not exists
-  let input = document.getElementById('assetExcelInput');
-  if (!input) {
-    input = document.createElement('input');
-    input.type = 'file';
-    input.id = 'assetExcelInput';
-    input.accept = '.xlsx, .xls, .csv';
-    input.style.display = 'none';
-    document.body.appendChild(input);
-    
-    input.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      // Reset input so same file can be selected again if needed
-      e.target.value = ''; 
-      
-      showLoader();
-      
-      const reader = new FileReader();
-      reader.onload = async (evt) => {
-        try {
-          const data = new Uint8Array(evt.target.result);
-          const wb = XLSX.read(data, { type: 'array' });
-          const ws = wb.Sheets[wb.SheetNames[0]];
-          
-          // cellDates: true forces XLSX to return JS Date objects instead of serial numbers
-          const rawData = XLSX.utils.sheet_to_json(ws, { cellDates: true });
-          
-          if (rawData.length === 0) {
-            throw new Error("Excel file appears empty.");
-          }
-
-          await processAssetImport(rawData);
-          
-        } catch (err) {
-          console.error(err);
-          alert("❌ Import Failed: " + err.message);
-          hideLoader();
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
-  input.click();
-};
-
 
 /* --- PROCESS LOGIC --- */
 async function processAssetImport(rows) {
@@ -4167,19 +4720,25 @@ async function processAssetImport(rows) {
     // Try different casing for Asset No
     const assetNo = r['Asset No'] || r['AssetNo'] || r['asset_no'] || r['Asset_No'];
     if (!assetNo) return; // Skip rows without Asset ID
-const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
+
+    const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
+    
+    // Create the entry object
     const entry = {
       vmNo: r['Vehicle/Machine No'] || r['VM No'] || r['Plate No'] || '',
       assetNo: String(assetNo).trim(),
       category: r['Category'] || 'Machine',
       brand: r['Brand'] || '',
       project: r['Project'] || '',
+      empId: r['User ID'] || r['Employee ID'] || '', 
+      userName: r['User Name'] || r['Name'] || '',
+      designation: r['Designation'] || '',
+      contact: r['Contact'] || r['Contact Number'] || '',
       regNo: r['Reg No'] || '',
       status: r['Status'] || 'IDLE',
-	shift: (typeof rawShift === 'string' && rawShift.trim() !== '') ? rawShift.trim() : 'Day',
+      shift: (typeof rawShift === 'string' && rawShift.trim() !== '') ? rawShift.trim() : 'Day',
       remarks: r['Remarks'] || '',
-
-      // USE NEW TIME FUNCTION
+      // Dates
       regExp: formatDateOnly(r['Reg Expiry']),
       from: formatDateTime(r['From']),
       till: formatDateTime(r['Till'])
@@ -4209,8 +4768,7 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
     const excelWinner = list[0];       // The newest data from Excel
     const excelLosers = list.slice(1); // Older data from Excel (goes to logs)
 
-    // 3. CHECK DATABASE: Does this asset already exist?
-    // We query by assetNo to prevent duplicates in the table
+    // 3. CHECK DATABASE
     const q = query(collection(db, COLL_ASSETS), where("assetNo", "==", assetKey));
     const querySnapshot = await getDocs(q);
 
@@ -4220,41 +4778,35 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
 
     if (!querySnapshot.empty) {
       // CASE: Asset Exists
-      const existingDoc = querySnapshot.docs[0]; // Take the first match
+      const existingDoc = querySnapshot.docs[0]; 
       const dbData = existingDoc.data();
       docRef = existingDoc.ref;
 
-      // Compare Dates: Is Excel data newer than DB data?
       const excelDate = excelWinner.from ? new Date(excelWinner.from) : new Date(0);
       const dbDate = dbData.from ? new Date(dbData.from) : new Date(0);
 
-      // If Excel is newer, OR if DB has no date, we update DB
+      // Update if Excel is newer OR DB has no date
       if (excelDate > dbDate || !dbData.from) {
         shouldUpdate = true;
-        oldDataToLog = { ...dbData, source: "PREV_DB_DATA" }; // Save old DB state to log
+        oldDataToLog = { ...dbData, source: "PREV_DB_DATA" };
       } else {
-        // Excel is older or same. Do NOT update DB. 
-        // Just add the "Excel Winner" to logs as history.
         oldDataToLog = { ...excelWinner, source: "EXCEL_OLDER_DATA" };
         shouldUpdate = false;
       }
 
     } else {
       // CASE: New Asset
-      docRef = doc(collection(db, COLL_ASSETS)); // Generate new ID
+      docRef = doc(collection(db, COLL_ASSETS));
       shouldUpdate = true;
       createdCount++;
     }
 
     // 4. PREPARE BATCH WRITES
-    
-    // A. Update/Create the Main Asset Document
     if (shouldUpdate) {
       const mainPayload = { 
         ...excelWinner, 
         updatedAt: serverTimestamp() 
       };
-      // If creating new, add createdAt
       if (createdCount > 0 && !querySnapshot.empty === false) {
          mainPayload.createdAt = serverTimestamp();
       }
@@ -4263,7 +4815,6 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
       opCount++;
     }
 
-    // B. Log the displaced data (either old DB data or the older Excel winner)
     if (oldDataToLog) {
       const logRef = doc(collection(db, COLL_ASSET_LOGS));
       batch.set(logRef, {
@@ -4276,7 +4827,6 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
       opCount++;
     }
 
-    // C. Log the rest of the Excel rows (the "losers")
     for (const hist of excelLosers) {
       const logRef = doc(collection(db, COLL_ASSET_LOGS));
       batch.set(logRef, {
@@ -4288,13 +4838,20 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
       opCount++;
     }
 
+    // --- FIX: DRIVER UPDATE LOGIC (MOVED INSIDE LOOP) ---
+    // If the asset updated, and it is In operation with a user, update the driver profile
+    if (shouldUpdate && excelWinner.status === 'In operation' && excelWinner.empId) {
+       // We use 'excelWinner' because 'entry' is not defined here
+       await updateDriverFromImport(excelWinner);
+    }
+
     // Commit if batch full
     if (opCount >= batchSize) {
       await batch.commit();
       batch = writeBatch(db);
       opCount = 0;
     }
-  }
+  } // <--- End of FOR LOOP
 
   // Final Commit
   if (opCount > 0) await batch.commit();
@@ -4302,6 +4859,173 @@ const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
   hideLoader();
   alert(`✅ Import Complete!\nUpdated: ${updatedCount}\nCreated: ${createdCount}\n(History logs generated automatically)`);
 }
+
+
+async function updateDriverFromImport(assetData) {
+  try {
+    const q = query(collection(db, COLL_DRIVERS), where("empId", "==", assetData.empId));
+    const snap = await getDocs(q);
+    
+    if (!snap.empty) {
+      const driverDoc = snap.docs[0];
+      await updateDoc(driverDoc.ref, {
+        vehicleNo: assetData.vmNo,
+        assetCode: assetData.assetNo,
+        project: assetData.project,
+        // Reset leave status since they are operating
+        leaveSince: null, 
+        leaveTill: null,
+        status: 'Active' 
+      });
+      console.log(`Updated Driver ${assetData.empId} with Asset ${assetData.assetNo}`);
+    }
+  } catch (err) {
+    console.error("Failed to update driver from import:", err);
+  }
+}
+
+
+// --- IMPORT MODAL STATE ---
+let currentImportType = null; // 'asset' or 'driver'
+let selectedImportFile = null;
+
+window.openImportModal = function(type) {
+  currentImportType = type;
+  selectedImportFile = null;
+  
+  // Update UI
+  document.getElementById('importModalTitle').textContent = type === 'asset' ? "Import Assets" : "Import Drivers/Operators";
+  document.getElementById('fileNameDisplay').textContent = "Click to browse...";
+  document.getElementById('confirmImportBtn').disabled = true;
+  document.getElementById('confirmImportBtn').style.opacity = "0.5";
+  document.getElementById('universalFileInput').value = ""; // Clear previous
+  
+  document.getElementById('importModal').style.display = 'flex';
+};
+
+window.closeImportModal = function() {
+  document.getElementById('importModal').style.display = 'none';
+};
+
+// 1. Download Sample Template Logic
+window.downloadSampleTemplate = function() {
+  let headers = [];
+  let filename = "";
+
+  if(currentImportType === 'asset') {
+    headers = [
+      { "Vehicle/Machine No": "B-101", "Asset No": "AST-001", "Category": "Vehicle", "Brand": "Toyota", "Project": "Gatex", "User Name": "John Doe", "User ID": "EMP123", "Designation": "Driver", "Contact": "0501234567", "Reg No": "DXB-123", "Reg Expiry": "2026-12-31", "Status": "In operation", "From": "2026-01-01 08:00", "Till": "2026-01-01 18:00", "Remarks": "" }
+    ];
+    filename = "Asset_Import_Template.xlsx";
+  } else {
+    headers = [
+      { "Employee ID": "EMP001", "Proper Name": "Ali Khan", "Designation": "Heavy Duty Driver", "Project": "Gatex", "Vehicle No": "B-101", "Asset No": "AST-001", "Contact Number": "+971500000000", "Joining Date": "2024-01-01", "Leave Since/ Resigned Date": "", "Leave Till": "", "Driver Status": "Active", "Remarks": "Notes here" }
+    ];
+    filename = "Driver_Import_Template.xlsx";
+  }
+
+  const ws = XLSX.utils.json_to_sheet(headers);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Template");
+  XLSX.writeFile(wb, filename);
+};
+
+// 2. Handle File Selection
+window.triggerFileSelect = function() {
+  document.getElementById('universalFileInput').click();
+};
+
+window.handleFileSelection = function(input) {
+  if (input.files && input.files[0]) {
+    selectedImportFile = input.files[0];
+    document.getElementById('fileNameDisplay').textContent = selectedImportFile.name;
+    document.getElementById('confirmImportBtn').disabled = false;
+    document.getElementById('confirmImportBtn').style.opacity = "1";
+  }
+};
+
+// 3. Process the Import
+window.processUniversalImport = function() {
+  if(!selectedImportFile) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      showLoader();
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      
+      // 'cellDates: true' helps parsing dates correctly
+      const jsonData = XLSX.utils.sheet_to_json(ws, { cellDates: true });
+
+      if (jsonData.length === 0) throw new Error("File is empty");
+
+      if (currentImportType === 'asset') {
+        await processAssetImport(jsonData); // Calls your existing Asset logic
+      } else {
+        await processDriverImportWrapper(jsonData); // Wrapper for Driver logic
+      }
+      
+      closeImportModal();
+      toast("✅ Import Processed Successfully");
+    } catch (err) {
+      console.error(err);
+      alert("Import Failed: " + err.message);
+    } finally {
+      hideLoader();
+    }
+  };
+  reader.readAsArrayBuffer(selectedImportFile);
+};
+
+// Wrapper to make your existing driver import logic work with the new modal
+async function processDriverImportWrapper(rows) {
+  let added = 0;
+  for(const r of rows){
+      // (Your existing mapping logic from importExcel goes here)
+      // I have copied and streamlined it below for you:
+      const empId  = r['Employee ID'] || '';
+      if(!empId) continue; // Skip empty rows
+
+      const name   = toTitleCase(r['Proper Name'] || '');
+      const designation = r['Designation'] || '';
+      const project = r['Project'] || '';
+      const vehicleNo= r['Vehicle No'] || '';
+      const assetCode = r['Asset No'] || r['assetCode'] || '';
+      const contact= r['Contact Number'] || '';
+      const joiningDate = normalizeDate(r['Joining Date']);
+      const leaveSince = normalizeDate(r['Leave Since/ Resigned Date']);
+      const leaveTill = normalizeDate(r['Leave Till']);
+      const status = r['Driver Status'] || 'Active';
+      const remarks= r['Remarks'] || '';
+
+      const invalids = { contact: !validContact(contact), assetCode: !validassetCode(assetCode) };
+      
+      const payload = {
+        empId, name, designation, project, vehicleNo, assetCode, contact,
+        joiningDate, status, remarks, invalids,
+        createdAt: serverTimestamp(),
+        leaveSince: leaveSince || null,
+        leaveTill: leaveTill || null,
+        returnedOnTime: false
+      };
+
+      if (status === "Active") { payload.leaveSince = null; payload.leaveTill = null; }
+      else if (status === "Resigned") { payload.leaveTill = null; }
+
+      await addDoc(collection(db, COLL_DRIVERS), payload);
+      added++;
+  }
+
+await fetchDrivers(); // 1. Pull the new data from Firestore into local state
+    renderTablePage();
+
+
+  console.log(`Drivers Added: ${added}`);
+}
+
+
 
 window.exportAssetExcel = async function() {
   if (state.filteredAssets.length === 0) {
@@ -4538,7 +5262,8 @@ function renderDashboard(){
   const assets = state.assets || [];
   const drivers = state.drivers || [];
   const projects = state.projects || [];
-  
+  document.getElementById('kpi_asset_total').textContent = state.assetTotalCount;
+  document.getElementById('kpi_driver_total').textContent = state.driverTotalCount;
   // --- KPI 1: Asset Status ---
   const assetStats = { Total: assets.length, Operation: 0, IDLE: 0, Maintenance: 0, Others: 0 };
   const assetStatusCounts = {}; // For Chart
@@ -4720,6 +5445,241 @@ window.expandChart = function(chartId) {
  updateAssetDashboardCounts();
 };
 
+/*--------------------Activity & Custom Reports------------------*/
+
+// --- 1. Multi-Select Logic ---
+
+// Populate Projects Multi-Select on Load
+function initReportsUI() {
+  const container = document.getElementById('cont_projects');
+  if(!container) return;
+  
+  container.innerHTML = '';
+  // Sort projects for easy finding
+  const sorted = [...state.projects].sort((a,b) => (a.p_name||'').localeCompare(b.p_name||''));
+  
+  sorted.forEach(p => {
+    const lbl = document.createElement('label');
+    lbl.className = 'option';
+    lbl.innerHTML = `<input type="checkbox" value="${p.p_name}"> ${p.p_name} <small style="color:#aaa">(${p.p_id})</small>`;
+    container.appendChild(lbl);
+  });
+}
+
+// Global toggle function for multi-selects
+window.toggleMulti = function(id) {
+  const el = document.querySelector(`#${id} .options-container`);
+  // Close others
+  document.querySelectorAll('.options-container').forEach(d => {
+    if(d !== el) d.classList.remove('active');
+  });
+  el.classList.toggle('active');
+};
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.multi-select')) {
+    document.querySelectorAll('.options-container').forEach(d => d.classList.remove('active'));
+  }
+});
+
+// Helper to get checked values
+function getMultiValues(id) {
+  const checkboxes = document.querySelectorAll(`#${id} input[type="checkbox"]:checked`);
+  return Array.from(checkboxes).map(cb => cb.value);
+}
+
+// --- 2. Activity Report Logic (Detailed) ---
+
+window.toggleActSearch = function() {
+  // Clear the search dropdown when switching type
+  const dd = document.getElementById('act_dd');
+  dd.dataset.value = '';
+  dd.querySelector('.selected').textContent = 'Type to search...';
+}
+
+window.exportDetailedHistory = async function() {
+  const type = document.getElementById('act_type').value;
+  const id = document.getElementById('act_dd').dataset.value;
+  const displayText = document.getElementById('act_dd').querySelector('.selected').textContent;
+
+  if(!id) { alert("Please search and select an entity first."); return; }
+
+  showLoader();
+  try {
+    const wb = XLSX.utils.book_new();
+    let profileData = [];
+    let logsData = [];
+    let fileName = "";
+
+    if (type === 'asset') {
+      // Fetch Asset Doc
+      const docRef = doc(db, COLL_ASSETS, id);
+      const docSnap = await getDoc(docRef);
+      if(!docSnap.exists()) throw new Error("Asset not found");
+      const a = docSnap.data();
+      
+      profileData.push({
+        "Asset No": a.assetNo, "VM No": a.vmNo, "Category": a.category,
+        "Current Project": a.project, "Current Status": a.status,
+        "User": a.userName, "Contact": a.contact
+      });
+
+      // Fetch Logs
+      const qLogs = query(collection(db, COLL_ASSET_LOGS), where("parentId", "==", id), orderBy("timestamp", "desc"));
+      const snapLogs = await getDocs(qLogs);
+      
+      snapLogs.forEach(l => {
+        const d = l.data();
+        logsData.push({
+          "Date": d.timestamp?.toDate().toLocaleString(),
+          "Status/Type": d.status || d.type,
+          "Project": d.project,
+          "User": d.userName,
+          "Remarks": d.remarks,
+          "Updated By": d.user
+        });
+      });
+      fileName = `History_Asset_${a.assetNo}.xlsx`;
+
+    } else {
+      // Driver Export
+      const docRef = doc(db, COLL_DRIVERS, id);
+      const docSnap = await getDoc(docRef);
+      if(!docSnap.exists()) throw new Error("Driver not found");
+      const d = docSnap.data();
+
+      profileData.push({
+        "Emp ID": d.empId, "Name": d.name, "Designation": d.designation,
+        "Project": d.project, "Vehicle": d.vehicleNo, "Status": d.status
+      });
+
+      const qLogs = query(collection(db, COLL_DRIVERS, id, "logs"), orderBy("changedAt", "desc"));
+      const snapLogs = await getDocs(qLogs);
+
+      snapLogs.forEach(l => {
+        const d = l.data();
+        logsData.push({
+          "Date": d.changedAt?.toDate().toLocaleString(),
+          "Status": d.status,
+          "Project": d.project,
+          "Vehicle": d.vehicleNo,
+          "Asset Code": d.assetCode,
+          "Remarks": d.remarks,
+          "Updated By": d.changedBy
+        });
+      });
+      fileName = `History_Driver_${d.empId}.xlsx`;
+    }
+
+    // Write Sheets
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(profileData), "Profile");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logsData), "Activity Logs");
+    XLSX.writeFile(wb, fileName);
+
+    toast("✅ Report Downloaded");
+
+  } catch(e) {
+    console.error(e);
+    alert("Export Failed: " + e.message);
+  } finally {
+    hideLoader();
+  }
+};
+
+// --- 3. Bulk Snapshot Logic (Filtered) ---
+
+window.exportBulkSnapshot = async function() {
+  const target = document.getElementById('ms_target').value;
+  const projects = getMultiValues('ms_projects');
+  const statuses = getMultiValues('ms_status');
+
+  // Warning for empty filters (Potential big read)
+  if(projects.length === 0 && statuses.length === 0) {
+    if(!confirm("⚠️ No filters selected. This will download ALL data. Continue?")) return;
+  }
+
+  showLoader();
+  try {
+    const collectionName = target === 'assets' ? COLL_ASSETS : COLL_DRIVERS;
+    
+    // STRATEGY: 
+    // Firestore 'in' query supports max 10 items.
+    // Also, we cannot chain multiple 'in' arrays on different fields easily.
+    // SOLUTION: Fetch based on Project (if < 10 selected) OR fetch all and filter in JS (Memory).
+    // Given the request "Cost too much reads", we try to limit reads.
+    
+    let q = query(collection(db, collectionName));
+    let rawDocs = [];
+
+    // Optimization: If projects selected and < 10, use database filter
+    if (projects.length > 0 && projects.length <= 10) {
+       // Note: Your asset 'project' field stores Name, but in some places ID. 
+       // Ensure consistency. Here we filter by the stored string.
+       q = query(q, where(target === 'assets' ? 'project' : 'project', 'in', projects));
+    }
+
+    const snap = await getDocs(q);
+    
+    // JS Filtering for remaining conditions
+    snap.forEach(doc => {
+      const d = doc.data();
+      const pName = d.project || ''; // Project Name
+      const sName = d.status || '';  // Status
+
+      // Filter Projects (If > 10 were selected, or if we didn't filter in DB)
+      if (projects.length > 0 && !projects.includes(pName)) return;
+
+      // Filter Status
+      // Handle "In operation" mapping for drivers who might be "Active"
+      let passStatus = false;
+      if (statuses.length === 0) passStatus = true;
+      else {
+        if (statuses.includes(sName)) passStatus = true;
+        // Map Active/In operation
+        if (statuses.includes('In operation') && sName === 'Active') passStatus = true;
+      }
+      
+      if (!passStatus) return;
+
+      rawDocs.push(d);
+    });
+
+    if (rawDocs.length === 0) {
+      alert("No records matched your filters.");
+      hideLoader(); return;
+    }
+
+    // Generate Excel
+    const data = rawDocs.map(item => {
+      if (target === 'assets') {
+         return {
+           "Asset No": item.assetNo, "VM No": item.vmNo, "Category": item.category,
+           "Project": item.project, "Status": item.status, "Reg Exp": item.regExp,
+           "User": item.userName, "Designation": item.designation
+         };
+      } else {
+         return {
+           "Emp ID": item.empId, "Name": item.name, "Designation": item.designation,
+           "Project": item.project, "Status": item.status, "Mobile": item.contact,
+           "Vehicle": item.vehicleNo, "Asset": item.assetCode
+         };
+      }
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Filtered Data");
+    XLSX.writeFile(wb, `Filtered_${target}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    
+    toast(`✅ Exported ${data.length} records.`);
+
+  } catch(e) {
+    console.error(e);
+    alert("Export Error: " + e.message);
+  } finally {
+    hideLoader();
+  }
+};
 
 /*--------------------FIletr from status------------------*/
 function filterFromStatus(role, status){
@@ -4754,15 +5714,20 @@ function onLoad(){
   if(savedPS){ psSel.value = savedPS; state.pageSize = parseInt(savedPS,10); }
   psSel.addEventListener('change', ()=>{ localStorage.setItem('pageSize_v2', psSel.value); });
 
+$('#pageSize').addEventListener('change', (e) => {
+  state.ASSET_PAGE_SIZE = parseInt(e.target.value);
+  fetchAssets(null); // Reload page 1 with new size
+});
+
   // If you want to keep a "logout" function — optional
   // window.doLogout = function(){ location.reload(); };
-listenToAssets();
+
 }
 
 window.addEventListener('load', onLoad);
 
 /* Ensure SuperAdmin account exists once at startup */
-await ensureDefaultSuperAdmin();
+//await ensureDefaultSuperAdmin();
 
 
 // Exporting functions to global scope so HTML onclick can find them
