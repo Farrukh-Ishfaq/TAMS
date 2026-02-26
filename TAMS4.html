@@ -17,6 +17,14 @@
 <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
 <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init("DykK94msC_KvQNpl2"); // Replace with your key
+   })();
+</script>
+
+
 <style>
   :root{
     --brand:#1e3a8a; --brand-2:#2563eb; --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444; --info:#0ea5e9;
@@ -881,6 +889,8 @@ input:focus {
   <a href="#" id="nav-undertaking" onclick="nav('undertaking')">Undertaking</a>
   <a href="#" id="nav-projectsSection" onclick="nav('projectsSection')">Projects</a>
   <a href="#" id="nav-users" onclick="nav('users')">Manage Users</a>
+<a href="#" id="nav-alerts" data-hide-for="Admin,Viewer" onclick="nav('alertsSection')">Alerts</a>
+<a href="#" id="nav-alertsConfig" data-hide-for="Admin,Viewer" onclick="nav('alertsConfigSection')">Alert Config</a>
     </nav>
 
   <div class="sidebar-footer">
@@ -973,7 +983,7 @@ input:focus {
   
   <div class="toolbar card">
 <div class="toolbar-left">
-   <input id="assetSearch" placeholder="Search Assets..." oninput="fetchAssets(null)" />
+   <input id="assetSearch" placeholder="Search Plate, Asset No..." oninput="debouncedAssetSearch()" />
     <select id="fAssetCat" onchange="applyAssetFilters()">
       <option value="">All Categories</option>
       <option>Vehicle</option>
@@ -1171,7 +1181,7 @@ input:focus {
       <h2>Driver/Operator List</h2>
       <div class="toolbar card">
 <div class="toolbar-left">
-        <input id="search" placeholder="Search" oninput="applyFilters()" />
+       <input id="search" placeholder="Search ID or Name..." oninput="debouncedDriverSearch()" />
         <select id="fDesignation" onchange="applyFilters()">
           <option value="">All Designations</option>
           <option>Heavy Duty Driver</option>
@@ -1533,6 +1543,68 @@ input:focus {
         </table>
       </div>
     </section>
+
+
+<section id="alertsConfigSection" class="section" style="display:none">
+  <h2>Alert Configuration</h2>
+  <div class="grid grid-2" style="align-items: flex-start;">
+    
+    <div class="card">
+      <h3>📧 Email Recipients</h3>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">Add emails that should receive automated reports.</p>
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <input id="newAlertEmail" placeholder="Enter email address..." style="flex:1;" />
+        <button class="btn" onclick="addEmailRecipient()">Add</button>
+      </div>
+      <div id="emailRecipientList" style="background:#f8fafc; border-radius:8px; padding:10px; min-height:100px; border:1px solid #cbd5e1;">
+        </div>
+    </div>
+
+    <div class="card">
+      <h3>⚙️ Active Alerts</h3>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:15px;">Select which reports to generate automatically.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="cfg_idle_ops" style="width:18px; height:18px;"> Daily 8AM: IDLE Operators
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="cfg_idle_assets" style="width:18px; height:18px;"> Daily 8AM: IDLE Assets
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="cfg_reg_exp" style="width:18px; height:18px;"> Real-time: Reg Near Expiry / Expired (One-time)
+        </label>
+        <hr style="border:0; border-top:1px dashed #cbd5e1; margin:5px 0;">
+        <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="cfg_weekly_ops" style="width:18px; height:18px;"> Weekly (Monday): Operator Count Report
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; text-transform:none; font-weight:600; color:var(--text); cursor:pointer;">
+          <input type="checkbox" id="cfg_weekly_assets" style="width:18px; height:18px;"> Weekly (Monday): Asset Count Report
+        </label>
+      </div>
+
+      <div style="margin-top:20px; text-align:right;">
+        <button class="btn" onclick="saveAlertConfig()">💾 Save Configuration</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="alertsSection" class="section" style="display:none">
+  <h2>Alerts Management</h2>
+  <div class="card" style="text-align:center; padding:40px;">
+    <h3>Manual Override</h3>
+    <p style="color:var(--muted); margin-bottom:20px;">
+      Alerts are checked automatically when a user logs in. If you want to force the system to check and send pending emails right now, click below.
+    </p>
+    <button class="btn secondary" style="padding:12px 24px; font-size:16px;" onclick="runAlertCheck(true)">
+      🚀 Force Check & Send Alerts
+    </button>
+    <p id="alertStatusText" style="margin-top:15px; font-weight:bold; color:var(--brand);"></p>
+  </div>
+</section>
+
+
   </main>
 </div>
 
@@ -1589,7 +1661,7 @@ input:focus {
 <section id="undertaking" class="section" style="display:none">
   <div class="no-print" style="padding: 20px; text-align:right;">
     <button class="btn" onclick="window.print()">🖨️ Print Undertaking</button>
-<button class="btn secondary" onclick="saveUndertakingDigital()">💾 Save Signed Copy</button>
+<!-- <button class="btn secondary" onclick="saveUndertakingDigital()">💾 Save Signed Copy</button>-->
   </div>
 
   <div class="undertaking-paper">
@@ -1784,23 +1856,24 @@ input:focus {
     <div class="card">
       <h3>📥 Detailed History Export</h3>
       <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
-        Search for a specific Asset or Driver to download their profile <b>AND</b> full history logs.
+        Search entire database for a specific Asset or Driver to download Profile + Full History Logs.
       </p>
       
       <div style="margin-bottom:15px;">
         <label>Select Type</label>
-        <select id="act_type" onchange="toggleActSearch()">
+        <select id="act_type" onchange="resetActSearch()">
           <option value="asset">Asset (Vehicle/Machine)</option>
           <option value="driver">Driver/Operator</option>
         </select>
       </div>
 
       <div style="margin-bottom:15px;">
-        <label>Search Entity</label>
+        <label>Search Entity (Server-Wide)</label>
         <div class="search-dd" id="act_dd">
           <div class="selected">Type to search...</div>
           <div class="panel">
-            <input class="search-input" placeholder="Search..." oninput="filterDD('act_dd', document.getElementById('act_type').value)">
+            <input class="search-input" placeholder="Type ID, Name, Plate No..." 
+                   oninput="handleServerSearch(this)">
             <div class="list"></div>
           </div>
         </div>
@@ -1814,7 +1887,7 @@ input:focus {
     <div class="card">
       <h3>📊 Bulk Snapshot Export</h3>
       <p style="font-size:12px; color:#64748b; margin-bottom:15px;">
-        Select multiple filters to download a list of current data. (Does not include history logs to save reads).
+        Select multiple filters to download a current status list.
       </p>
 
       <div class="grid grid-2">
@@ -1842,6 +1915,10 @@ input:focus {
                <label class="option"><input type="checkbox" value="Maintenance"> Maintenance</label>
                <label class="option"><input type="checkbox" value="On Leave"> On Leave</label>
                <label class="option"><input type="checkbox" value="Resigned"> Resigned</label>
+               <label class="option"><input type="checkbox" value="Scrap"> Scrap</label>
+               <label class="option"><input type="checkbox" value="Passing Work"> Passing Work</label>
+               <label class="option"><input type="checkbox" value="To be Sold"> To be Sold</label>
+               <label class="option"><input type="checkbox" value="Sold"> Sold</label>
              </div>
            </div>
         </div>
@@ -1863,7 +1940,6 @@ input:focus {
     </div>
   </div>
 </section>
-
 
 
 
@@ -2088,7 +2164,7 @@ async function doLogin() {
   }
 }
 
-// REPLACE your current onAuthStateChanged with this:
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("✅ Auth Login Success:", user.email, "| UID:", user.uid);
@@ -2150,6 +2226,9 @@ fetchAssets(null),
         // ALWAYS hide loader, even if errors occur
         hideLoader();
         nav('dashboard');
+
+await loadAlertSettings();
+runAlertCheck(); 
     }
 
   } else {
@@ -2501,59 +2580,59 @@ async function savePw(){
 window.savePw = savePw;
 
 
-/* ------------------------------- Drivers -------------------------------- */
+/* ------------------------------- Drivers -------------------------------- 
+4. UPGRADED FETCH DRIVERS (Supports ID OR Name)
+   ----------------------------------------------------------- */
 window.fetchDrivers = async function(direction = null) {
   showLoader();
   try {
-    let q = collection(db, COLL_DRIVERS);
-    const term = document.getElementById('search').value.trim(); 
+    const term = document.getElementById('search').value.trim();
 
+    // A. SEARCH MODE
     if (term.length > 0) {
-       // Search by ID on Server
-       q = query(q, where('empId', '>=', term), where('empId', '<=', term + '\uf8ff'), limit(state.driverChunkSize));
-    } else {
-       let baseQuery = query(q, orderBy("createdAt", "desc"));
+       // Query 1: Employee ID
+       const qId = query(collection(db, COLL_DRIVERS),
+         where('empId', '>=', term), where('empId', '<=', term + '\uf8ff'), limit(50));
+
+       // Query 2: Name (Convert input to Title Case first to match DB format)
+       const nameTerm = term.replace(/\b\w/g, c => c.toUpperCase());
+       const qName = query(collection(db, COLL_DRIVERS),
+         where('name', '>=', nameTerm), where('name', '<=', nameTerm + '\uf8ff'), limit(50));
+
+       const [snapId, snapName] = await Promise.all([getDocs(qId), getDocs(qName)]);
+
+       // Merge results
+       const results = new Map();
+       snapId.forEach(d => results.set(d.id, {id: d.id, ...d.data()}));
+       snapName.forEach(d => results.set(d.id, {id: d.id, ...d.data()}));
+
+       state.drivers = Array.from(results.values());
+       state.lastDriverDoc = null; 
+    } 
+    // B. STANDARD PAGINATION MODE
+    else {
+       let q = query(collection(db, COLL_DRIVERS), orderBy("createdAt", "desc"));
        if (direction === 'next' && state.lastDriverDoc) {
          state.driverPageStack.push(state.lastDriverDoc);
-         q = query(baseQuery, startAfter(state.lastDriverDoc), limit(state.driverChunkSize));
+         q = query(q, startAfter(state.lastDriverDoc), limit(state.driverChunkSize));
        } else {
-         q = query(baseQuery, limit(state.driverChunkSize));
+         q = query(q, limit(state.driverChunkSize));
          state.driverPageStack = [];
        }
+       const snapshot = await getDocs(q);
+       state.drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+       if(!snapshot.empty) state.lastDriverDoc = snapshot.docs[snapshot.docs.length - 1];
     }
 
-    const snapshot = await getDocs(q);
-    state.drivers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    if(!snapshot.empty) {
-      state.lastDriverDoc = snapshot.docs[snapshot.docs.length - 1];
-    }
-    
     state.driverLocalPage = 1;
     applyFilters(); 
 
-  } catch(e) { console.error(e); } finally { hideLoader(); }
-};
-
-
-  //Lazy refresh: only if cache expired
-  if (needsRefresh) {
-    const snap = await getDocs(collection(db, COLL_DRIVERS));
-    const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    arr.sort((a, b) => {
-      const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-      const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-      return tb - ta;
-    });
-    state.drivers = arr;
-    
-    updateDriverCache();
-    
-	setDataStatus("✅ Fresh data", "#2563eb");  // blue
-    console.log("✅ Cache refreshed after 24h");
+  } catch(e) { 
+    console.error(e); 
+  } finally { 
+    hideLoader(); 
   }
-
-
+};
 
 // 1. Navigation update
 // ... existing nav function code ...
@@ -2575,7 +2654,7 @@ window.nav = function(id) {
   if(id.startsWith('report')) $('#nav-reports').classList.add('active');
 
   // 5. Loaders
-  if(id === 'dashboard') renderDashboard();
+  if(id === 'dashboard') renderDashboard().catch(console.error);
   if(id === 'list') { applyRoleUI(); applyFilters(); }
   if(id === 'projectsSection') { loadProjects(); applyProjFilters(); }
   if(id === 'users') renderUsers();
@@ -3030,6 +3109,17 @@ const projectObj = state.projects.find(p => p.p_id === selectedProjId);
     return;
   }
 
+let isNew = !currentEditAssetId;
+  if (isNew || (state.assets.find(a => a.id === currentEditAssetId)?.assetNo !== assetNo)) {
+      showLoader();
+      const qCheck = query(collection(db, COLL_ASSETS), where("assetNo", "==", assetNo), limit(1));
+      const snapCheck = await getDocs(qCheck);
+      hideLoader();
+      if (!snapCheck.empty) {
+          alert(`⛔ DUPLICATE ERROR: Asset No "${assetNo}" already exists in the system.`);
+          return;
+      }
+  }
 
 const existingAsset = currentEditAssetId ? state.assets.find(a => a.id === currentEditAssetId) : null;
   const hasStatusChanged = !existingAsset || existingAsset.status !== status;  
@@ -3040,7 +3130,9 @@ const formState = {
   };
   // Helper to fill undertaking UI directly
   fillUndertakingFromData(formState);
-
+const cleanPlate = vmNo.replace(/[^a-zA-Z0-9]/g, "").toLowerCase(); // ad161224
+  const numericPlate = vmNo.replace(/\D/g, ""); // 161224
+  const searchKeywords = [assetNo.toLowerCase(), vmNo.toLowerCase(), cleanPlate, numericPlate].filter(k => k.length > 2);
   // ---------------------------------------------------------
   // 3. PREPARE DATA FOR FIRESTORE
   // ---------------------------------------------------------
@@ -3443,29 +3535,22 @@ function updateDriverProjectDropdown() {
   if(currentVal) select.value = currentVal;
 }
 function updateDriverFilterDropdown() {
-  const filterSelect = $('#fProject');
+  const filterSelect = document.getElementById('fProject');
   if (!filterSelect) return;
 
-  // Preserve the current selection if the user already picked a project
-  const currentFilterVal = filterSelect.value;
-  
-  // Clear and add the default "All Projects"
+  const currentVal = filterSelect.value;
   filterSelect.innerHTML = '<option value="">All Projects</option>';
 
-  // Sort projects alphabetically and add them
   state.projects
-   .filter(p => p.status === 'Active' || p.p_status === 'Active') // Optional: Only show Active projects in filter
     .sort((a, b) => (a.p_name || "").localeCompare(b.p_name || ""))
     .forEach(p => {
       const opt = document.createElement('option');
-      opt.value = p.p_name;
-const dispId = p.p_id ? `${p.p_id} - ` : '';
-      opt.textContent = `${dispId}${p.p_name}`;
+      opt.value = p.p_name; // Value is Name to match table filtering logic
+      opt.textContent = p.p_id ? `${p.p_id} - ${p.p_name}` : p.p_name;
       filterSelect.appendChild(opt);
     });
 
-  // Restore previous value
- if (currentVal) filterSelect.value = currentVal;
+  if (currentVal) filterSelect.value = currentVal;
 }
 // --- LISTEN FOR ASSETS ---
 
@@ -3626,53 +3711,72 @@ async function updateAssetDashboardCounts() {
   } catch(e) { console.error("Asset Count Error", e); }
 }
 
+// 1. GLOBAL TIMERS (The Debouncers)
+let assetSearchTimer = null;
+let driverSearchTimer = null;
+
+// 2. DEBOUNCE WRAPPERS (Paste these anywhere in your script)
+window.debouncedAssetSearch = function() {
+  clearTimeout(assetSearchTimer);
+  // Wait 800ms after user stops typing before calling server
+  assetSearchTimer = setTimeout(() => {
+    fetchAssets(null);
+  }, 800);
+};
+
+window.debouncedDriverSearch = function() {
+  clearTimeout(driverSearchTimer);
+  driverSearchTimer = setTimeout(() => {
+    fetchDrivers(null);
+  }, 800);
+};
 
 // fetch Assets
 window.fetchAssets = async function(direction = null) {
   showLoader();
   try {
-    let q = collection(db, COLL_ASSETS);
-    const searchVal = document.getElementById('assetSearch').value.trim();
-
-    // 1. SERVER SEARCH (Overrides Pagination)
-    if (searchVal.length > 0) {
-      // NOTE: Firestore search is case-sensitive and prefix-based by default
-      q = query(q, 
-           where('assetNo', '>=', searchVal), 
-           where('assetNo', '<=', searchVal + '\uf8ff'),
-           limit(state.assetChunkSize));
-    } 
-    // 2. SERVER PAGINATION
-    else {
-      let baseQuery = query(q, orderBy("updatedAt", "desc")); // Order by newest
+    const term = document.getElementById('assetSearch').value.trim();
+    
+    // A. SEARCH MODE (If text exists)
+    if (term.length > 0) {
+      // Run two queries in parallel: One for Asset No, One for VM No (Plate)
+      const q1 = query(collection(db, COLL_ASSETS), 
+         where('assetNo', '>=', term), where('assetNo', '<=', term + '\uf8ff'), limit(50));
       
+      const q2 = query(collection(db, COLL_ASSETS), 
+         where('vmNo', '>=', term), where('vmNo', '<=', term + '\uf8ff'), limit(50));
+
+      const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      // Merge results and remove duplicates (using Map)
+      const results = new Map();
+      snap1.forEach(d => results.set(d.id, { id: d.id, ...d.data() }));
+      snap2.forEach(d => results.set(d.id, { id: d.id, ...d.data() }));
+
+      state.assets = Array.from(results.values());
+      state.lastAssetDoc = null; // Disable pagination cursor during search
+    } 
+    // B. STANDARD PAGINATION MODE (No text)
+    else {
+      let q = query(collection(db, COLL_ASSETS), orderBy("updatedAt", "desc"));
       if (direction === 'next' && state.lastAssetDoc) {
         state.assetPageStack.push(state.lastAssetDoc);
-        q = query(baseQuery, startAfter(state.lastAssetDoc), limit(state.assetChunkSize));
+        q = query(q, startAfter(state.lastAssetDoc), limit(state.assetChunkSize));
       } else {
-        // First Page / Reset
-        q = query(baseQuery, limit(state.assetChunkSize));
+        q = query(q, limit(state.assetChunkSize));
         state.assetPageStack = [];
       }
+      const snapshot = await getDocs(q);
+      state.assets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (!snapshot.empty) state.lastAssetDoc = snapshot.docs[snapshot.docs.length - 1];
     }
 
-    const snapshot = await getDocs(q);
-    state.assets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Update Cursors
-    if (!snapshot.empty) {
-      state.lastAssetDoc = snapshot.docs[snapshot.docs.length - 1];
-    }
-
-    // Reset Local Page View to 1
     state.assetLocalPage = 1;
-    
-    // Apply Local Filters (Dropdowns) to this new chunk
-    applyAssetFilters(); 
+    applyAssetFilters(); // Re-render table
 
   } catch (err) {
     console.error("Asset Fetch Error:", err);
-    toast("Error fetching assets");
+    alert("Error fetching assets");
   } finally {
     hideLoader();
   }
@@ -4709,157 +4813,94 @@ function formatDateTime(v) {
   return `${y}-${m}-${d} ${h}:${min}`;
 }
 
-/* --- IMPORT EXCEL FUNCTION --- */
 
 /* --- PROCESS LOGIC --- */
 async function processAssetImport(rows) {
-  // 1. Group Excel data by Asset No
   const groups = {};
-  
   rows.forEach(r => {
-    // Try different casing for Asset No
-    const assetNo = r['Asset No'] || r['AssetNo'] || r['asset_no'] || r['Asset_No'];
-    if (!assetNo) return; // Skip rows without Asset ID
+    const assetNo = String(r['Asset No'] || r['AssetNo'] || r['asset_no'] || '').trim();
+    if (!assetNo) return;
 
-    const rawShift = r['Shift'] || r['shift'] || r['SHIFT'] || '';
-    
-    // Create the entry object
+    const vm = r['Vehicle/Machine No'] || r['VM No'] || '';
+    const cleanPlate = vm.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    const numericPlate = vm.replace(/\D/g, "");
+
     const entry = {
-      vmNo: r['Vehicle/Machine No'] || r['VM No'] || r['Plate No'] || '',
-      assetNo: String(assetNo).trim(),
-      category: r['Category'] || 'Machine',
-      brand: r['Brand'] || '',
-      project: r['Project'] || '',
-      empId: r['User ID'] || r['Employee ID'] || '', 
-      userName: r['User Name'] || r['Name'] || '',
-      designation: r['Designation'] || '',
-      contact: r['Contact'] || r['Contact Number'] || '',
-      regNo: r['Reg No'] || '',
-      status: r['Status'] || 'IDLE',
-      shift: (typeof rawShift === 'string' && rawShift.trim() !== '') ? rawShift.trim() : 'Day',
-      remarks: r['Remarks'] || '',
-      // Dates
-      regExp: formatDateOnly(r['Reg Expiry']),
-      from: formatDateTime(r['From']),
-      till: formatDateTime(r['Till'])
+      vmNo: vm, assetNo: assetNo, category: r['Category'] || 'Machine',
+      brand: r['Brand'] || '', project: r['Project'] || '',
+      empId: r['User ID'] || r['Employee ID'] || '', userName: r['User Name'] || '',
+      designation: r['Designation'] || '', contact: r['Contact'] || '',
+      regNo: r['Reg No'] || '', status: r['Status'] || 'IDLE',
+      shift: r['Shift'] || 'Day', remarks: r['Remarks'] || '',
+      regExp: formatDateOnly(r['Reg Expiry']), from: formatDateTime(r['From']), till: formatDateTime(r['Till']),
+      searchKeywords: [assetNo.toLowerCase(), vm.toLowerCase(), cleanPlate, numericPlate].filter(k => k.length > 2)
     };
-    
     if (!groups[assetNo]) groups[assetNo] = [];
     groups[assetNo].push(entry);
   });
 
   const batchSize = 450; 
   let batch = writeBatch(db);
-  let opCount = 0;
-  let updatedCount = 0;
-  let createdCount = 0;
+  let opCount = 0, updatedCount = 0, createdCount = 0;
 
-  // 2. Iterate over each Asset Group
   for (const assetKey in groups) {
     const list = groups[assetKey];
-    
-    // Sort Excel entries by 'From' Date (Newest first)
-    list.sort((a, b) => {
-      const dA = a.from ? new Date(a.from) : new Date(0);
-      const dB = b.from ? new Date(b.from) : new Date(0);
-      return dB - dA; 
-    });
+    // Sort Excel: Newest 'From' date first
+    list.sort((a, b) => (new Date(b.from || 0)) - (new Date(a.from || 0)));
+    const excelWinner = list[0];
+    const excelHistory = list.slice(1);
 
-    const excelWinner = list[0];       // The newest data from Excel
-    const excelLosers = list.slice(1); // Older data from Excel (goes to logs)
-
-    // 3. CHECK DATABASE
-    const q = query(collection(db, COLL_ASSETS), where("assetNo", "==", assetKey));
+    const q = query(collection(db, COLL_ASSETS), where("assetNo", "==", assetKey), limit(1));
     const querySnapshot = await getDocs(q);
 
     let docRef;
-    let oldDataToLog = null;
-    let shouldUpdate = false;
+    let mainPayload = excelWinner;
+    let oldDataToLog = [];
 
     if (!querySnapshot.empty) {
-      // CASE: Asset Exists
-      const existingDoc = querySnapshot.docs[0]; 
-      const dbData = existingDoc.data();
-      docRef = existingDoc.ref;
+      const dbDoc = querySnapshot.docs[0];
+      const dbData = dbDoc.data();
+      docRef = dbDoc.ref;
+      
+      const excelDate = new Date(excelWinner.from || 0);
+      const dbDate = new Date(dbData.from || 0);
 
-      const excelDate = excelWinner.from ? new Date(excelWinner.from) : new Date(0);
-      const dbDate = dbData.from ? new Date(dbData.from) : new Date(0);
-
-      // Update if Excel is newer OR DB has no date
-      if (excelDate > dbDate || !dbData.from) {
-        shouldUpdate = true;
-        oldDataToLog = { ...dbData, source: "PREV_DB_DATA" };
+      if (excelDate >= dbDate) {
+          oldDataToLog.push({ ...dbData, type: "HISTORY_LOG" });
+          updatedCount++;
       } else {
-        oldDataToLog = { ...excelWinner, source: "EXCEL_OLDER_DATA" };
-        shouldUpdate = false;
+          mainPayload = null; // Keep DB as is
+          oldDataToLog.push({ ...excelWinner, type: "IMPORT_OLDER_THAN_DB" });
       }
-
     } else {
-      // CASE: New Asset
       docRef = doc(collection(db, COLL_ASSETS));
-      shouldUpdate = true;
       createdCount++;
     }
 
-    // 4. PREPARE BATCH WRITES
-    if (shouldUpdate) {
-      const mainPayload = { 
-        ...excelWinner, 
-        updatedAt: serverTimestamp() 
-      };
-      if (createdCount > 0 && !querySnapshot.empty === false) {
-         mainPayload.createdAt = serverTimestamp();
-      }
-      batch.set(docRef, mainPayload, { merge: true });
-      if (!querySnapshot.empty) updatedCount++;
+    if (mainPayload) {
+      batch.set(docRef, { ...mainPayload, updatedAt: serverTimestamp() }, { merge: true });
       opCount++;
     }
 
-    if (oldDataToLog) {
-      const logRef = doc(collection(db, COLL_ASSET_LOGS));
-      batch.set(logRef, {
-        parentId: docRef.id,
-        type: "HISTORY_LOG",
-        assetNo: assetKey,
-        ...oldDataToLog,
-        timestamp: serverTimestamp()
-      });
+    // Move everything else to logs
+    const logs = [...oldDataToLog, ...excelHistory];
+    for (const logItem of logs) {
+      const lRef = doc(collection(db, COLL_ASSET_LOGS));
+      batch.set(lRef, { parentId: docRef.id, type: logItem.type || "IMPORT_HISTORY", ...logItem, timestamp: serverTimestamp() });
       opCount++;
     }
 
-    for (const hist of excelLosers) {
-      const logRef = doc(collection(db, COLL_ASSET_LOGS));
-      batch.set(logRef, {
-        parentId: docRef.id,
-        type: "IMPORT_HISTORY",
-        ...hist,
-        timestamp: hist.from ? new Date(hist.from) : new Date()
-      });
-      opCount++;
+    if (mainPayload && mainPayload.status === 'In operation' && mainPayload.empId) {
+      await updateDriverFromImport(mainPayload);
     }
 
-    // --- FIX: DRIVER UPDATE LOGIC (MOVED INSIDE LOOP) ---
-    // If the asset updated, and it is In operation with a user, update the driver profile
-    if (shouldUpdate && excelWinner.status === 'In operation' && excelWinner.empId) {
-       // We use 'excelWinner' because 'entry' is not defined here
-       await updateDriverFromImport(excelWinner);
-    }
-
-    // Commit if batch full
-    if (opCount >= batchSize) {
-      await batch.commit();
-      batch = writeBatch(db);
-      opCount = 0;
-    }
-  } // <--- End of FOR LOOP
-
-  // Final Commit
+    if (opCount >= batchSize) { await batch.commit(); batch = writeBatch(db); opCount = 0; }
+  }
   if (opCount > 0) await batch.commit();
-
   hideLoader();
-  alert(`✅ Import Complete!\nUpdated: ${updatedCount}\nCreated: ${createdCount}\n(History logs generated automatically)`);
+  alert(`✅ Import Complete!\nUpdated: ${updatedCount}\nCreated: ${createdCount}`);
+  fetchAssets();
 }
-
 
 async function updateDriverFromImport(assetData) {
   try {
@@ -4981,50 +5022,44 @@ window.processUniversalImport = function() {
 
 // Wrapper to make your existing driver import logic work with the new modal
 async function processDriverImportWrapper(rows) {
-  let added = 0;
+  showLoader();
+  let added = 0; let updated = 0;
+  
   for(const r of rows){
-      // (Your existing mapping logic from importExcel goes here)
-      // I have copied and streamlined it below for you:
-      const empId  = r['Employee ID'] || '';
-      if(!empId) continue; // Skip empty rows
+      const empId = String(r['Employee ID'] || r['User ID'] || '').trim();
+      if(!empId) continue;
 
-      const name   = toTitleCase(r['Proper Name'] || '');
-      const designation = r['Designation'] || '';
-      const project = r['Project'] || '';
-      const vehicleNo= r['Vehicle No'] || '';
-      const assetCode = r['Asset No'] || r['assetCode'] || '';
-      const contact= r['Contact Number'] || '';
-      const joiningDate = normalizeDate(r['Joining Date']);
-      const leaveSince = normalizeDate(r['Leave Since/ Resigned Date']);
-      const leaveTill = normalizeDate(r['Leave Till']);
-      const status = r['Driver Status'] || 'Active';
-      const remarks= r['Remarks'] || '';
-
-      const invalids = { contact: !validContact(contact), assetCode: !validassetCode(assetCode) };
-      
       const payload = {
-        empId, name, designation, project, vehicleNo, assetCode, contact,
-        joiningDate, status, remarks, invalids,
-        createdAt: serverTimestamp(),
-        leaveSince: leaveSince || null,
-        leaveTill: leaveTill || null,
-        returnedOnTime: false
+        empId, name: toTitleCase(r['Proper Name'] || r['Name'] || ''),
+        designation: r['Designation'] || '', project: r['Project'] || '',
+        vehicleNo: r['Vehicle No'] || '', assetCode: r['Asset No'] || r['assetCode'] || '',
+        contact: r['Contact Number'] || r['Contact'] || '',
+        joiningDate: normalizeDate(r['Joining Date']),
+        status: r['Driver Status'] || r['Status'] || 'Active',
+        remarks: r['Remarks'] || '',
+        leaveSince: normalizeDate(r['Leave Since/ Resigned Date']) || null,
+        leaveTill: normalizeDate(r['Leave Till']) || null,
+        updatedAt: serverTimestamp()
       };
 
-      if (status === "Active") { payload.leaveSince = null; payload.leaveTill = null; }
-      else if (status === "Resigned") { payload.leaveTill = null; }
+      if (payload.status === "Active") { payload.leaveSince = null; payload.leaveTill = null; }
 
-      await addDoc(collection(db, COLL_DRIVERS), payload);
-      added++;
+      // SERVER-SIDE UNIQUE CHECK
+      const q = query(collection(db, COLL_DRIVERS), where("empId", "==", empId), limit(1));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+          await addDoc(collection(db, COLL_DRIVERS), { ...payload, createdAt: serverTimestamp() });
+          added++;
+      } else {
+          await updateDoc(snap.docs[0].ref, payload);
+          updated++;
+      }
   }
-
-await fetchDrivers(); // 1. Pull the new data from Firestore into local state
-    renderTablePage();
-
-
-  console.log(`Drivers Added: ${added}`);
+  hideLoader();
+  alert(`Drivers Processed:\nNew: ${added}\nUpdated Existing: ${updated}`);
+  await fetchDrivers(); 
 }
-
 
 
 window.exportAssetExcel = async function() {
@@ -5257,165 +5292,201 @@ function countByProject(arr){
 /*--------------------Render Dashboard------------------*/
 
 
-function renderDashboard(){
-  // 1. DATA PREPARATION
-  const assets = state.assets || [];
-  const drivers = state.drivers || [];
-  const projects = state.projects || [];
-  document.getElementById('kpi_asset_total').textContent = state.assetTotalCount;
-  document.getElementById('kpi_driver_total').textContent = state.driverTotalCount;
-  // --- KPI 1: Asset Status ---
-  const assetStats = { Total: assets.length, Operation: 0, IDLE: 0, Maintenance: 0, Others: 0 };
-  const assetStatusCounts = {}; // For Chart
-  
-  assets.forEach(a => {
-    const s = a.status || 'Unknown';
-    assetStatusCounts[s] = (assetStatusCounts[s] || 0) + 1;
+window.renderDashboard = async function() {
+  showLoader(); // Dashboard now fetches counts, so we show the loader
+
+  try {
+    const assetColl = collection(db, COLL_ASSETS);
+    const drvColl = collection(db, COLL_DRIVERS);
     
-    if(s === 'In operation') assetStats.Operation++;
-    else if(s === 'IDLE') assetStats.IDLE++;
-    else if(s === 'Maintenance') assetStats.Maintenance++;
-    else assetStats.Others++;
-  });
-  
-  document.getElementById('kpi_asset_total').textContent = assetStats.Total;
-  document.getElementById('kpi_asset_sub').textContent = `In Operation: ${assetStats.Operation} | IDLE: ${assetStats.IDLE} | Maintenance: ${assetStats.Maintenance}`;
+    // We will store all our query promises here to run them concurrently
+    const promises = [];
+    const counts = {};
 
-  // --- KPI 2: Driver Status ---
-  const drvStats = { Total: drivers.length, Active: 0, Leave: 0 };
-  const drvStatusCounts = {}; // For Chart
+    // Helper function to queue a count query
+    const queueCount = (key, q) => {
+      promises.push(
+        getCountFromServer(q).then(snap => { counts[key] = snap.data().count; })
+      );
+    };
 
-  drivers.forEach(d => {
-    const s = d.status || 'Unknown';
-    drvStatusCounts[s] = (drvStatusCounts[s] || 0) + 1;
-    if(s === 'Active') drvStats.Active++;
-    if(s === 'On Leave') drvStats.Leave++;
-  });
+    // 1. QUEUE ASSET QUERIES
+    queueCount('asset_total', query(assetColl));
+    const assetStatuses = ['In operation', 'IDLE', 'Maintenance', 'Scrap', 'Passing Work', 'To be Sold', 'Sold'];
+    assetStatuses.forEach(s => queueCount(`ast_stat_${s}`, query(assetColl, where("status", "==", s))));
+    
+    const assetCats = ['Vehicle', 'Machine', 'Gensets', 'Minor'];
+    assetCats.forEach(c => queueCount(`ast_cat_${c}`, query(assetColl, where("category", "==", c))));
 
-  document.getElementById('kpi_driver_total').textContent = drvStats.Total;
-  document.getElementById('kpi_driver_sub').textContent = `Active: ${drvStats.Active} | On Leave: ${drvStats.Leave}`;
+    // 2. QUEUE DRIVER QUERIES
+    queueCount('drv_total', query(drvColl));
+    const drvStatuses = ['Active', 'On Leave', 'Resigned', 'Transfer', 'IDLE'];
+    drvStatuses.forEach(s => queueCount(`drv_stat_${s}`, query(drvColl, where("status", "==", s))));
 
-  // --- KPI 3: Registration Status ---
-  let validReg = 0, expReg = 0, nearReg = 0;
-  const today = new Date();
-  
-  assets.forEach(a => {
-    if(a.regExp) {
-      const d = new Date(a.regExp);
-      const diff = (d - today) / (1000*60*60*24);
-      if(diff < 0) expReg++;
-      else if(diff <= 15) nearReg++;
-      else validReg++;
-    }
-  });
-  
-  document.getElementById('kpi_reg_total').textContent = assets.filter(a=>a.regExp).length;
-  document.getElementById('kpi_reg_sub').textContent = `Valid: ${validReg} | Expired/Near Expiry: ${expReg + nearReg}`;
+    // 3. QUEUE PROJECT QUERIES (Dynamic based on your active projects)
+    state.projects.forEach(p => {
+      const pName = p.p_name;
+      // Asset count per project
+      queueCount(`proj_ast_${pName}`, query(assetColl, where("project", "==", pName)));
+    });
 
-  // --- CHARTS PREPARATION ---
-  
-  // 1. Project-wise Asset Count
-  const projAssetCount = {};
-  assets.forEach(a => {
-    const p = a.project || 'Unassigned';
-    projAssetCount[p] = (projAssetCount[p] || 0) + 1;
-  });
+    // 4. REGISTRATION EXPIRY QUERIES
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const nearDate = new Date();
+    nearDate.setDate(today.getDate() + 15);
+    const nearStr = nearDate.toISOString().slice(0, 10);
 
-  // 2. Asset Category
-  const catCount = {};
-  assets.forEach(a => {
-    const c = a.category || 'Other';
-    catCount[c] = (catCount[c] || 0) + 1;
-  });
+    // Expired: RegExp < Today
+    queueCount('reg_expired', query(assetColl, where("regExp", "<", todayStr), where("regExp", "!=", "")));
+    // Valid: RegExp > 15 days from now
+    queueCount('reg_valid', query(assetColl, where("regExp", ">", nearStr)));
 
-  // 3. Project Status
-  const projStatusCount = {};
-  projects.forEach(p => {
-    const s = p.status || 'Unknown';
-    projStatusCount[s] = (projStatusCount[s] || 0) + 1;
-  });
+    // EXECUTE ALL QUERIES AT ONCE
+    await Promise.all(promises);
 
-  // 4. Project Division
-  const divCount = {};
-  projects.forEach(p => {
-    const d = p.p_div || 'Unknown';
-    divCount[d] = (divCount[d] || 0) + 1;
-  });
+    // --- UPDATE KPIs ---
+    document.getElementById('kpi_asset_total').textContent = counts['asset_total'] || 0;
+    document.getElementById('kpi_asset_sub').textContent = `Op: ${counts['ast_stat_In operation'] || 0} | Idle: ${counts['ast_stat_IDLE'] || 0} | Maint: ${counts['ast_stat_Maintenance'] || 0}`;
+
+    document.getElementById('kpi_driver_total').textContent = counts['drv_total'] || 0;
+    document.getElementById('kpi_driver_sub').textContent = `Active: ${counts['drv_stat_Active'] || 0} | On Leave: ${counts['drv_stat_On Leave'] || 0}`;
+
+    // Note: "Near Expiry" requires JS calculation or a specific compound index. 
+    // We approximate Total Reg by subtracting Valid and Expired from Total.
+    const totalRegAssumed = counts['asset_total'] || 0;
+    const expReg = counts['reg_expired'] || 0;
+    const validReg = counts['reg_valid'] || 0;
+    const nearReg = Math.max(0, totalRegAssumed - expReg - validReg);
+
+    document.getElementById('kpi_reg_total').textContent = totalRegAssumed;
+    document.getElementById('kpi_reg_sub').textContent = `Valid: ${validReg} | Expired/Near: ${expReg + nearReg}`;
+
+    // --- PREPARE CHART DATA ---
+    const projAssetData = {};
+    state.projects.forEach(p => { 
+        if(counts[`proj_ast_${p.p_name}`]) projAssetData[p.p_name] = counts[`proj_ast_${p.p_name}`]; 
+    });
+
+    const astStatData = {};
+    assetStatuses.forEach(s => { if(counts[`ast_stat_${s}`]) astStatData[s] = counts[`ast_stat_${s}`]; });
+
+    const astCatData = {};
+    assetCats.forEach(c => { if(counts[`ast_cat_${c}`]) astCatData[c] = counts[`ast_cat_${c}`]; });
+
+    const drvStatData = {};
+    drvStatuses.forEach(s => { if(counts[`drv_stat_${s}`]) drvStatData[s] = counts[`drv_stat_${s}`]; });
+
+    // Project Status & Division (These are fast to calculate locally since state.projects is fully loaded)
+    const projStatusCount = {};
+    const divCount = {};
+    state.projects.forEach(p => {
+      const s = p.status || 'Unknown';
+      const d = p.p_div || 'Unknown';
+      projStatusCount[s] = (projStatusCount[s] || 0) + 1;
+      divCount[d] = (divCount[d] || 0) + 1;
+    });
+
+    // --- RENDER CHARTS ---
+    const commonOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: {size: 11} } } } };
+    
+    ['projectAssetChart', 'assetStatusChart', 'opStatusChart', 'assetCatChart', 'projStatusChart', 'projDivChart'].forEach(id => {
+      if(charts[id]) charts[id].destroy();
+    });
+
+    charts['projectAssetChart'] = new Chart(document.getElementById('projectAssetChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(projAssetData).map(key => `${key} (${projAssetData[key]})`),
+        datasets: [{ label: 'Count', data: Object.values(projAssetData), backgroundColor: '#3b82f6' }]
+      },
+      options: { ...commonOptions, plugins: { legend: { display: false } } }
+    });
+
+    charts['assetStatusChart'] = new Chart(document.getElementById('assetStatusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(astStatData).map(key => `${key} (${astStatData[key]})`),
+        datasets: [{ data: Object.values(astStatData), backgroundColor: ['#22c55e','#f59e0b','#ef4444','#64748b','#3b82f6','#a855f7'] }]
+      },
+      options: commonOptions
+    });
 
 
-  // --- RENDERING CHARTS ---
-  const commonOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: {size: 11} } } }
-  };
-  
-  // Helper to destroy old charts
-  ['projectAssetChart', 'assetStatusChart', 'opStatusChart', 'assetCatChart', 'projStatusChart', 'projDivChart'].forEach(id => {
-    if(charts[id]) charts[id].destroy();
-  });
+// Changed from 'pie' to 'polarArea' with transparent colors for a modern look
+    charts['opStatusChart'] = new Chart(document.getElementById('opStatusChart'), {
+      type: 'polarArea',
+      data: {
+        labels: Object.keys(drvStatData).map(key => `${key} (${drvStatData[key]})`),
+        datasets: [{ 
+          data: Object.values(drvStatData), 
+          // Adding transparency (0.7) makes the polar grid lines visible behind the colors
+          backgroundColor: [
+            'rgba(249, 115, 22, 0.7)', 
+            'rgba(139, 92, 246, 0.7)', 
+            'rgba(6, 182, 212, 0.7)', 
+            'rgba(236, 72, 153, 0.7)'
+          ],
+          borderColor: ['#f97316','#8b5cf6','#06b6d4','#ec4899'],
+          borderWidth: 1
+        }]
+      },
+      options: { 
+        ...commonOptions,
+        scales: {
+          r: { 
+            ticks: { display: false } // Hides the background numbers for a cleaner design
+          }
+        }
+      }
+    });
 
-  // 1. Project Assets (Bar)
-  charts['projectAssetChart'] = new Chart(document.getElementById('projectAssetChart'), {
-    type: 'bar',
-    data: {
-     labels: Object.keys(projAssetCount).map(key => `${key} (${projAssetCount[key]})`),
-      datasets: [{ label: 'Count', data: Object.values(projAssetCount), backgroundColor: '#3b82f6' }]
-    },
-    options: { ...commonOptions, plugins: { legend: { display: false } } } // Hide legend for bar
-  });
 
-  // 2. Asset Status (Doughnut)
-  charts['assetStatusChart'] = new Chart(document.getElementById('assetStatusChart'), {
-    type: 'doughnut',
-    data: {
-     labels: Object.keys(assetStatusCounts).map(key => `${key} (${assetStatusCounts[key]})`),
-      datasets: [{ data: Object.values(assetStatusCounts), backgroundColor: ['#22c55e','#f59e0b','#ef4444','#64748b','#3b82f6','#a855f7'] }]
-    },
-    options: commonOptions
-  });
+ 
 
-  // 3. Operator Status (Doughnut)
-  charts['opStatusChart'] = new Chart(document.getElementById('opStatusChart'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(drvStatusCounts).map(key => `${key} (${drvStatusCounts[key]})`),
-      datasets: [{ data: Object.values(drvStatusCounts), backgroundColor: ['#22c55e','#f59e0b','#ef4444','#0ea5e9','#64748b'] }]
-    },
-    options: commonOptions
-  });
+    charts['assetCatChart'] = new Chart(document.getElementById('assetCatChart'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(astCatData).map(key => `${key} (${astCatData[key]})`),
+        datasets: [{ data: Object.values(astCatData), backgroundColor: ['#f97316','#8b5cf6','#06b6d4','#ec4899'] }]
+      },
+      options: commonOptions
+    });
 
-  // 4. Asset Category (Pie)
-  charts['assetCatChart'] = new Chart(document.getElementById('assetCatChart'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(catCount).map(key => `${key} (${catCount[key]})`),
-      datasets: [{ data: Object.values(catCount), backgroundColor: ['#f97316','#8b5cf6','#06b6d4','#ec4899'] }]
-    },
-    options: commonOptions
-  });
+ // Changed from standard 'pie' to a 180-degree Half-Doughnut
+    charts['projStatusChart'] = new Chart(document.getElementById('projStatusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(projStatusCount).map(key => `${key} (${projStatusCount[key]})`),
+        datasets: [{ 
+          data: Object.values(projStatusCount), 
+          backgroundColor: ['#22c55e','#94a3b8','#f59e0b'],
+          borderWidth: 2
+        }]
+      },
+      options: { 
+        ...commonOptions,
+        rotation: -90,        // Starts the chart at the far left
+        circumference: 180,   // Cuts the chart exactly in half
+        cutout: '65%'         // Makes the ring slightly thinner for elegance
+      }
+    });
 
-  // 5. Project Status (Pie)
-  charts['projStatusChart'] = new Chart(document.getElementById('projStatusChart'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(projStatusCount).map(key => `${key} (${projStatusCount[key]})`),
-      datasets: [{ data: Object.values(projStatusCount), backgroundColor: ['#22c55e','#94a3b8','#f59e0b'] }]
-    },
-    options: commonOptions
-  });
+    charts['projDivChart'] = new Chart(document.getElementById('projDivChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(divCount).map(key => `${key} (${divCount[key]})`),
+        datasets: [{ label:'Count', data: Object.values(divCount), backgroundColor: '#6366f1' }]
+      },
+      options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
 
-  // 6. Project Division (Bar - Horizontal is better for names)
-  charts['projDivChart'] = new Chart(document.getElementById('projDivChart'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(divCount).map(key => `${key} (${divCount[key]})`),
-      datasets: [{ label:'Count', data: Object.values(divCount), backgroundColor: '#6366f1' }]
-    },
-    options: { ...commonOptions, indexAxis: 'y', plugins: { legend: { display: false } } }
-  });
+  } catch (err) {
+    console.error("Dashboard Render Error:", err);
+  } finally {
+    hideLoader();
+  }
 }
-
 // Global function to expand chart
 window.expandChart = function(chartId) {
   const modal = document.getElementById('chartModal');
@@ -5501,8 +5572,7 @@ window.toggleActSearch = function() {
 window.exportDetailedHistory = async function() {
   const type = document.getElementById('act_type').value;
   const id = document.getElementById('act_dd').dataset.value;
-  const displayText = document.getElementById('act_dd').querySelector('.selected').textContent;
-
+  
   if(!id) { alert("Please search and select an entity first."); return; }
 
   showLoader();
@@ -5513,29 +5583,42 @@ window.exportDetailedHistory = async function() {
     let fileName = "";
 
     if (type === 'asset') {
-      // Fetch Asset Doc
-      const docRef = doc(db, COLL_ASSETS, id);
+      // 1. ASSET EXPORT
+      const docRef = doc(db, "assets", id);
       const docSnap = await getDoc(docRef);
       if(!docSnap.exists()) throw new Error("Asset not found");
       const a = docSnap.data();
       
+      // Profile Sheet
       profileData.push({
-        "Asset No": a.assetNo, "VM No": a.vmNo, "Category": a.category,
-        "Current Project": a.project, "Current Status": a.status,
-        "User": a.userName, "Contact": a.contact
+        "Asset No": a.assetNo, 
+        "VM No": a.vmNo, 
+        "Category": a.category,
+        "Current Project": a.project, 
+        "Current Status": a.status,
+        "User": a.userName, 
+        "Contact": a.contact,
+        "Reg Expiry": a.regExp
       });
 
-      // Fetch Logs
-      const qLogs = query(collection(db, COLL_ASSET_LOGS), where("parentId", "==", id), orderBy("timestamp", "desc"));
+      // Logs Sheet
+      const qLogs = query(collection(db, "asset_logs"), where("parentId", "==", id), orderBy("timestamp", "desc"));
       const snapLogs = await getDocs(qLogs);
       
       snapLogs.forEach(l => {
         const d = l.data();
+        
+        // Combine From/Till into one column
+        const fromStr = d.from ? d.from : '';
+        const tillStr = d.till ? d.till : '';
+        const rangeStr = (fromStr || tillStr) ? `From: ${fromStr}\nTill: ${tillStr}` : '-';
+
         logsData.push({
           "Date": d.timestamp?.toDate().toLocaleString(),
           "Status/Type": d.status || d.type,
           "Project": d.project,
           "User": d.userName,
+          "From/Till": rangeStr, // <--- NEW COLUMN
           "Remarks": d.remarks,
           "Updated By": d.user
         });
@@ -5543,28 +5626,41 @@ window.exportDetailedHistory = async function() {
       fileName = `History_Asset_${a.assetNo}.xlsx`;
 
     } else {
-      // Driver Export
-      const docRef = doc(db, COLL_DRIVERS, id);
+      // 2. DRIVER EXPORT
+      const docRef = doc(db, "drivers", id);
       const docSnap = await getDoc(docRef);
       if(!docSnap.exists()) throw new Error("Driver not found");
       const d = docSnap.data();
 
       profileData.push({
-        "Emp ID": d.empId, "Name": d.name, "Designation": d.designation,
-        "Project": d.project, "Vehicle": d.vehicleNo, "Status": d.status
+        "Emp ID": d.empId, 
+        "Name": d.name, 
+        "Designation": d.designation,
+        "Project": d.project, 
+        "Vehicle": d.vehicleNo, 
+        "Status": d.status
       });
 
-      const qLogs = query(collection(db, COLL_DRIVERS, id, "logs"), orderBy("changedAt", "desc"));
+      const qLogs = query(collection(db, "drivers", id, "logs"), orderBy("changedAt", "desc"));
       const snapLogs = await getDocs(qLogs);
 
       snapLogs.forEach(l => {
         const d = l.data();
+        
+        // Combine Dates into one column
+        const join = d.joiningDate ? `Join: ${d.joiningDate}` : '';
+        const since = d.leaveSince ? `Since: ${d.leaveSince}` : '';
+        const till = d.leaveTill ? `Till: ${d.leaveTill}` : '';
+        // Filter out empty strings and join with newlines
+        const dateStr = [join, since, till].filter(Boolean).join('\n');
+
         logsData.push({
           "Date": d.changedAt?.toDate().toLocaleString(),
           "Status": d.status,
           "Project": d.project,
           "Vehicle": d.vehicleNo,
           "Asset Code": d.assetCode,
+          "Dates (Join/Leave/Till)": dateStr, // <--- NEW COLUMN
           "Remarks": d.remarks,
           "Updated By": d.changedBy
         });
@@ -5586,6 +5682,110 @@ window.exportDetailedHistory = async function() {
     hideLoader();
   }
 };
+/* --- SERVER SIDE SEARCH UTILS --- */
+
+// 1. Debounce to prevent too many reads while typing
+let searchTimeout;
+window.handleServerSearch = function(input) {
+  const type = document.getElementById('act_type').value;
+  const listContainer = input.parentElement.querySelector('.list');
+  const term = input.value.trim();
+
+  // Show panel immediately
+  input.closest('.search-dd').querySelector('.panel').style.display = 'block';
+
+  if (!term) {
+    listContainer.innerHTML = '<div class="item" style="color:#999">Type to search server...</div>';
+    return;
+  }
+
+  listContainer.innerHTML = '<div class="item" style="color:#666">🔍 Searching...</div>';
+
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    executeGlobalSearch(type, term, listContainer, input.closest('.search-dd'));
+  }, 600); // Wait 600ms after typing stops
+};
+
+// 2. Execute the Search
+async function executeGlobalSearch(type, term, listContainer, ddElement) {
+  try {
+    const collName = type === 'asset' ? 'assets' : 'drivers';
+    const results = new Map(); // Use Map to deduplicate by ID
+
+    // SEARCH STRATEGY: Run 2 parallel queries to find matches in different fields
+    const promises = [];
+
+    if (type === 'asset') {
+      // Query 1: Match Asset No
+      promises.push(getDocs(query(collection(db, collName), 
+        where('assetNo', '>=', term), where('assetNo', '<=', term + '\uf8ff'), limit(5))));
+      
+      // Query 2: Match VM No (Plate)
+      promises.push(getDocs(query(collection(db, collName), 
+        where('vmNo', '>=', term), where('vmNo', '<=', term + '\uf8ff'), limit(5))));
+    
+    } else {
+      // Query 1: Match Emp ID
+      promises.push(getDocs(query(collection(db, collName), 
+        where('empId', '>=', term), where('empId', '<=', term + '\uf8ff'), limit(5))));
+
+      // Query 2: Match Name (Try Title Case automatically since names are usually stored that way)
+      const nameTerm = term.replace(/\b\w/g, c => c.toUpperCase());
+      promises.push(getDocs(query(collection(db, collName), 
+        where('name', '>=', nameTerm), where('name', '<=', nameTerm + '\uf8ff'), limit(5))));
+    }
+
+    // Wait for all queries
+    const snapshots = await Promise.all(promises);
+
+    // Merge Results
+    snapshots.forEach(snap => {
+      snap.forEach(doc => {
+        results.set(doc.id, { id: doc.id, ...doc.data() });
+      });
+    });
+
+    // Render
+    listContainer.innerHTML = '';
+    if (results.size === 0) {
+      listContainer.innerHTML = '<div class="item" style="color:#999">No results found.</div>';
+      return;
+    }
+
+    results.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      
+      if (type === 'asset') {
+        div.textContent = `[${item.assetNo}] ${item.vmNo} (${item.status})`;
+      } else {
+        div.textContent = `[${item.empId}] ${item.name} (${item.designation})`;
+      }
+
+      div.onclick = () => {
+        ddElement.querySelector('.selected').textContent = div.textContent;
+        ddElement.dataset.value = item.id; // Store ID for export
+        ddElement.querySelector('.panel').style.display = 'none';
+      };
+      
+      listContainer.appendChild(div);
+    });
+
+  } catch (e) {
+    console.error(e);
+    listContainer.innerHTML = '<div class="item" style="color:red">Error searching.</div>';
+  }
+}
+
+window.resetActSearch = function() {
+  const dd = document.getElementById('act_dd');
+  dd.dataset.value = '';
+  dd.querySelector('.selected').textContent = 'Type to search...';
+  dd.querySelector('input').value = '';
+  dd.querySelector('.list').innerHTML = '';
+}
+
 
 // --- 3. Bulk Snapshot Logic (Filtered) ---
 
@@ -5705,6 +5905,236 @@ function setDataStatus(text, color="#475569") {
   }
 }
 
+
+/*--------------------ALERT SYSTEM STATE------------------*/
+
+let alertConfig = {
+  emails: [],
+  idle_ops: false,
+  idle_assets: false,
+  reg_exp: false,
+  weekly_ops: false,
+  weekly_assets: false,
+  lastDailySent: "",
+  lastWeeklySent: ""
+};
+
+const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";
+const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
+
+// 1. Load Settings
+async function loadAlertSettings() {
+  try {
+    const docRef = doc(db, "settings", "alertsConfig");
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      alertConfig = { ...alertConfig, ...snap.data() };
+      
+      // Update UI
+      document.getElementById('cfg_idle_ops').checked = alertConfig.idle_ops;
+      document.getElementById('cfg_idle_assets').checked = alertConfig.idle_assets;
+      document.getElementById('cfg_reg_exp').checked = alertConfig.reg_exp;
+      document.getElementById('cfg_weekly_ops').checked = alertConfig.weekly_ops;
+      document.getElementById('cfg_weekly_assets').checked = alertConfig.weekly_assets;
+      renderEmailList();
+    }
+  } catch (e) {
+    console.error("Failed to load alert settings", e);
+  }
+}
+window.loadAlertSettings = loadAlertSettings;
+
+// 2. Manage Emails
+window.addEmailRecipient = function() {
+  const email = document.getElementById('newAlertEmail').value.trim();
+  if(email && !alertConfig.emails.includes(email)) {
+    alertConfig.emails.push(email);
+    document.getElementById('newAlertEmail').value = '';
+    renderEmailList();
+  }
+}
+
+window.removeEmail = function(index) {
+  alertConfig.emails.splice(index, 1);
+  renderEmailList();
+}
+
+function renderEmailList() {
+  const container = document.getElementById('emailRecipientList');
+  container.innerHTML = alertConfig.emails.map((email, idx) => `
+    <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #e2e8f0; font-size:14px;">
+      <span>${email}</span>
+      <span style="color:var(--bad); cursor:pointer; font-weight:bold;" onclick="removeEmail(${idx})">✖</span>
+    </div>
+  `).join('');
+}
+
+window.saveAlertConfig = async function() {
+  alertConfig.idle_ops = document.getElementById('cfg_idle_ops').checked;
+  alertConfig.idle_assets = document.getElementById('cfg_idle_assets').checked;
+  alertConfig.reg_exp = document.getElementById('cfg_reg_exp').checked;
+  alertConfig.weekly_ops = document.getElementById('cfg_weekly_ops').checked;
+  alertConfig.weekly_assets = document.getElementById('cfg_weekly_assets').checked;
+
+  try {
+    await setDoc(doc(db, "settings", "alertsConfig"), alertConfig);
+    toast("✅ Alert Configuration Saved!");
+  } catch(e) {
+    toast("❌ Error saving config");
+  }
+}
+
+// 3. CORE LOGIC: Evaluate & Send
+window.runAlertCheck = async function(force = false) {
+  const statusTxt = document.getElementById('alertStatusText');
+  if(statusTxt) statusTxt.textContent = "Checking criteria...";
+
+  if (!alertConfig.emails || alertConfig.emails.length === 0) {
+    if(statusTxt) statusTxt.textContent = "No recipient emails configured.";
+    return;
+  }
+
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const isAfter8AM = now.getHours() >= 8;
+  const isMonday = now.getDay() === 1;
+
+  // --- A. DAILY 8 AM (IDLE REPORT) ---
+  if ((isAfter8AM && alertConfig.lastDailySent !== todayStr) || force) {
+    let dailyHtml = `<h2>Daily IDLE Report - ${todayStr}</h2>`;
+    let sendDaily = false;
+
+    // IDLE Operators
+    if (alertConfig.idle_ops) {
+      const idleOps = state.drivers.filter(d => (d.status || "").toLowerCase() === "idle");
+      if (idleOps.length > 0) {
+        sendDaily = true;
+        dailyHtml += `<h3>IDLE Operators</h3>
+          <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; text-align: left;">
+          <tr style="background:#eff6ff;"><th>SN.</th><th>Employee ID</th><th>Name</th><th>IDLE Since (Days)</th></tr>`;
+        
+        idleOps.forEach((op, idx) => {
+          const days = op.leaveSince ? Math.floor((now - new Date(op.leaveSince)) / 86400000) : "N/A";
+          dailyHtml += `<tr><td>${idx+1}</td><td>${op.empId}</td><td>${op.name}</td><td>${days}</td></tr>`;
+        });
+        dailyHtml += `</table><br>`;
+      }
+    }
+
+    // IDLE Assets
+    if (alertConfig.idle_assets) {
+      const idleAssets = state.assets.filter(a => (a.status || "").toLowerCase() === "idle");
+      if (idleAssets.length > 0) {
+        sendDaily = true;
+        dailyHtml += `<h3>IDLE Assets</h3>
+          <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; text-align: left;">
+          <tr style="background:#fef3c7;"><th>SN.</th><th>Asset Code</th><th>Plate No</th><th>IDLE Since (Days)</th></tr>`;
+        
+        idleAssets.forEach((ast, idx) => {
+          // Fallback to 'till' date or 'updatedAt' to calculate idle days
+          const refDate = ast.till ? new Date(ast.till) : (ast.updatedAt ? ast.updatedAt.toDate() : now);
+          const days = Math.floor((now - refDate) / 86400000);
+          dailyHtml += `<tr><td>${idx+1}</td><td>${ast.assetNo}</td><td>${ast.vmNo}</td><td>${days >= 0 ? days : 0}</td></tr>`;
+        });
+        dailyHtml += `</table><br>`;
+      }
+    }
+
+    if (sendDaily) {
+      await sendEmail("Daily IDLE Report", dailyHtml);
+      alertConfig.lastDailySent = todayStr;
+      await setDoc(doc(db, "settings", "alertsConfig"), { lastDailySent: todayStr }, { merge: true });
+    }
+  }
+
+  // --- B. WEEKLY (MONDAY) ---
+  if ((isMonday && alertConfig.lastWeeklySent !== todayStr) || force) {
+    let weeklyHtml = `<h2>Weekly Summary Report - ${todayStr}</h2>`;
+    let sendWeekly = false;
+
+    if (alertConfig.weekly_assets) {
+      sendWeekly = true;
+      const counts = { "In operation": 0, "IDLE": 0, "Maintenance": 0, "Passing Work": 0 };
+      state.assets.forEach(a => { if(counts[a.status] !== undefined) counts[a.status]++; });
+
+      weeklyHtml += `<h3>Asset Count</h3>
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; text-align: center;">
+        <tr style="background:#eff6ff;"><th>In Operation</th><th>IDLE</th><th>Maintenance</th><th>Passing Work</th></tr>
+        <tr><td>${counts["In operation"]}</td><td>${counts["IDLE"]}</td><td>${counts["Maintenance"]}</td><td>${counts["Passing Work"]}</td></tr>
+        </table><br>`;
+    }
+
+    if (alertConfig.weekly_ops) {
+      sendWeekly = true;
+      const counts = { "Active": 0, "On Leave": 0, "IDLE": 0, "Resigned": 0 };
+      state.drivers.forEach(d => { if(counts[d.status] !== undefined) counts[d.status]++; });
+
+      weeklyHtml += `<h3>Operator/Driver Count</h3>
+        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; text-align: center;">
+        <tr style="background:#dcfce7;"><th>Active</th><th>On Leave</th><th>IDLE</th><th>Resigned</th></tr>
+        <tr><td>${counts["Active"]}</td><td>${counts["On Leave"]}</td><td>${counts["IDLE"]}</td><td>${counts["Resigned"]}</td></tr>
+        </table><br>`;
+    }
+
+    if (sendWeekly) {
+      await sendEmail("Weekly Summary Report", weeklyHtml);
+      alertConfig.lastWeeklySent = todayStr;
+      await setDoc(doc(db, "settings", "alertsConfig"), { lastWeeklySent: todayStr }, { merge: true });
+    }
+  }
+
+  // --- C. REGISTRATION ONE-TIME ALERTS ---
+  if (alertConfig.reg_exp) {
+    const threshold = new Date();
+    threshold.setDate(now.getDate() + 15);
+    
+    for (const a of state.assets) {
+      if (!a.regExp) continue;
+      
+      const expDate = new Date(a.regExp);
+      const diffDays = Math.ceil((expDate - now) / 86400000);
+      let newAlertStatus = null;
+
+      if (diffDays <= 0) newAlertStatus = "expired";
+      else if (diffDays <= 15) newAlertStatus = "near_expiry";
+
+      // If status changed to a critical state and we haven't alerted yet
+      if (newAlertStatus && a.lastAlertStatus !== newAlertStatus) {
+        const msg = `<h3>Registration Alert</h3>
+          <p>Asset <b>${a.assetNo}</b> (${a.vmNo}) registration is currently <b>${newAlertStatus.toUpperCase()}</b>.</p>
+          <p>Expiry Date: ${a.regExp}</p>`;
+        
+        await sendEmail(`Asset ${newAlertStatus}: ${a.assetNo}`, msg);
+        
+        // Update document to prevent repeating
+        await updateDoc(doc(db, "assets", a.id), { lastAlertStatus: newAlertStatus });
+      } 
+      // Reset if renewed
+      else if (diffDays > 15 && a.lastAlertStatus) {
+        await updateDoc(doc(db, "assets", a.id), { lastAlertStatus: null });
+      }
+    }
+  }
+
+  if(statusTxt) statusTxt.textContent = "Check complete! Emails sent if criteria were met.";
+}
+
+// 4. Send Email Wrapper
+async function sendEmail(subject, htmlContent) {
+  const emails = alertConfig.emails.join(", ");
+  const params = {
+    to_email: emails,
+    subject: subject,
+    message: htmlContent // Make sure your EmailJS template interprets {{message}} as HTML (use {{{message}}} in EmailJS if needed)
+  };
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params);
+    console.log(`Sent: ${subject}`);
+  } catch (e) {
+    console.error(`Failed to send ${subject}`, e);
+  }
+}
 
 /* --------------------------------- Init --------------------------------- */
 function onLoad(){
